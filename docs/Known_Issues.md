@@ -19,15 +19,6 @@ its units. Decision needed: write an intro for each room and rack (the body of i
 `_index.md`), and optionally a `description` for its meta description (today the site
 description).
 
-### KI-5: the site description still says "homelab journey" (2026-11-15, updated 2026-11-15)
-
-`params.description` in `hugo.toml` (the home meta description, the RSS channel description
-and the fallback meta description of every room and rack page) describes a homelab
-blog, while the server rooms now also cover Mindset, Software
-Engineering, Cybersecurity, AI, 3D Printing and Future projects. Decision needed: the wording
-of a broader description. The author chose to keep the current wording for now (2026-11-15);
-the README no longer has a tagline (rewritten 2026-11-15).
-
 ### KI-6: the home page has no `<h1>` (2026-11-15)
 
 The home page has no band, so its first heading is the `<h2>` of the first floor (Mindset);
@@ -94,3 +85,15 @@ Closed 2026-11-15 by the author's rewrite of `content/_index.md`: the lead's sec
 reads "I'm writing this blog to document my projects and what I learn along the way, ...", and
 "I do it for a few reasons:" moved after `<!--more-->`, opening the list inside the disclosure.
 `scripts/check.sh` asserts both.
+
+
+### KI-5: the site description still says "homelab journey" (2026-11-15, updated 2026-11-15)
+
+`params.description` in `hugo.toml` (the home meta description, the RSS channel description
+and the fallback meta description of every room and rack page) describes a homelab
+blog, while the server rooms now also cover Mindset, Software
+Engineering, Cybersecurity, AI, 3D Printing and Future projects. Decision needed: the wording
+of a broader description. The author chose to keep the current wording for now (2026-11-15);
+the README no longer has a tagline (rewritten 2026-11-15).
+
+Closed 2026-11-15 by the author: `params.description` now reads "I document my projects and what I learn along the way, from the homelab to software, security and AI." (first person, all themes).

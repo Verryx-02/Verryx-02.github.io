@@ -10,7 +10,7 @@ titleCaseStyle = "firstupper"
 [params]
   author = "Francesco Verrengia"
   alias = "Verryx"
-  description = "Francesco Verrengia (Verryx) documents his homelab journey: Linux, Proxmox, networking and DevOps, mistakes included."
+  description = "I document my projects and what I learn along the way, from the homelab to software, security and AI."
   github = "https://github.com/Verryx-02"
   # First year shown in the footer copyright range.
   startYear = 2026
