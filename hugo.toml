@@ -20,9 +20,9 @@ titleCaseStyle = "firstupper"
 # copy them from https://giscus.app (docs/Maintaining.md, "Comments").
 [params.giscus]
   repo = "Verryx-02/Verryx-02.github.io"
-  repoId = ""
+  repoId = "R_kgDOO7gj8A"
   category = "Comments"
-  categoryId = ""
+  categoryId = "DIC_kwDOO7gj8M4DLNej"
   mapping = "pathname"
   reactionsEnabled = true
   inputPosition = "top"
