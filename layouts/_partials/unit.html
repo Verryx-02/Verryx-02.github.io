@@ -1,0 +1,43 @@
+{{- /*
+One 1U panel of a rack. The unit label "UNN" sits in the left ear, above the status LED.
+Published post: green LED, linked title; in the full rack also "[date] opening text".
+Blanking panel: red steady LED, no link; its planned title if it has one (in the full rack
+also "Planned"), no text at all if untitled. Screen readers hear "Planned: <title>" or
+"Empty slot", so the status is not carried by the LED colour alone.
+@context {dict} "unit" (a dict from rack-units.html), "compact" (bool: the home page rack,
+  titles only), "rack" (optional: the rack section, named with its room in a kicker above the
+  title, "<Room> · <Rack>", for lists that mix racks such as tag pages).
+@example: {{ partial "unit.html" (dict "unit" . "compact" true) }}
+*/ -}}
+{{- $u := .unit }}
+{{- $compact := .compact | default false }}
+{{- $rack := .rack | default false }}
+{{- $label := printf "U%02d" $u.unit }}
+{{- with $u.page }}
+<li class="card unit unit--live">
+  <span class="unit__label" aria-hidden="true">{{ $label }}</span>
+  {{- if $compact }}
+  <p class="unit__title"><a href="{{ .RelPermalink }}">{{ .LinkTitle }}</a></p>
+  {{- else }}
+  {{- with $rack }}<p class="unit__kicker">{{ with .Parent }}{{ .LinkTitle }}<span class="sep" aria-hidden="true">·</span>{{ end }}{{ .LinkTitle }}</p>{{ end }}
+  <h2 class="unit__title"><a href="{{ .RelPermalink }}">{{ .LinkTitle }}</a></h2>
+  <p class="unit__line">
+    <time class="unit__date" datetime="{{ .Date.Format "2006-01-02" }}">[{{ .Date.Format "2006-01-02" }}]</time>
+    {{ with .Params.summary }}{{ . }}{{ else }}{{ .Summary | plainify | htmlUnescape | truncate 160 }}{{ end }}
+  </p>
+  {{- end }}
+</li>
+{{- else }}
+<li class="card unit unit--blank">
+  <span class="unit__label" aria-hidden="true">{{ $label }}</span>
+  {{- with $u.title }}
+  <p class="unit__title" aria-hidden="true">{{ . }}</p>
+  {{- if not $compact }}
+  <p class="unit__line" aria-hidden="true"><span class="unit__status">Planned</span></p>
+  {{- end }}
+  <span class="visually-hidden">Planned: {{ . }}</span>
+  {{- else }}
+  <span class="visually-hidden">Empty slot</span>
+  {{- end }}
+</li>
+{{- end }}

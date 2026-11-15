@@ -1,0 +1,38 @@
+{{- /*
+The site's figure: replaces Hugo's built-in one. A page-bundle photo becomes a responsive
+WebP <img> (srcset at 400w, 800w, the display width and twice it, never above the original),
+with width/height set so the page does not shift while it loads, lazily loaded.
+Any other file of the page bundle (an SVG) is served as-is through its RelPermalink, which
+also publishes it (posts set build.publishResources = false); a src outside the bundle is
+used as written.
+@param src (string, required) File name in the page bundle.
+@param alt (string) Alternative text.
+@param caption (string, Markdown) Caption under the image.
+@param width (int) Display width in CSS pixels; default the image's own width.
+@example: in Markdown, figure src="photo.jpg" alt="What the photo shows" caption="Caption" width="400"
+  inside the shortcode delimiters.
+*/ -}}
+{{- $src := .Get "src" }}
+{{- $alt := .Get "alt" }}
+{{- $img := .Page.Resources.Get $src }}
+<figure>
+{{- if and $img (eq $img.ResourceType "image") (ne $img.MediaType.SubType "svg") }}
+  {{- $display := $img.Width }}
+  {{- with .Get "width" }}{{ if lt (int .) $display }}{{ $display = int . }}{{ end }}{{ end }}
+  {{- $srcset := slice }}
+  {{- $default := false }}
+  {{- range slice 400 800 $display (mul $display 2) | uniq | sort }}
+    {{- if and (le . $img.Width) (le . (mul $display 2)) }}
+      {{- $r := $img.Resize (printf "%dx webp q80" .) }}
+      {{- $srcset = $srcset | append (printf "%s %dw" $r.RelPermalink $r.Width) }}
+      {{- if eq . $display }}{{ $default = $r }}{{ end }}
+    {{- end }}
+  {{- end }}
+  <img src="{{ $default.RelPermalink }}" srcset="{{ delimit $srcset ", " }}" sizes="(max-width: {{ $display }}px) 100vw, {{ $display }}px" width="{{ $display }}" height="{{ $default.Height }}" alt="{{ $alt }}" loading="lazy" decoding="async">
+{{- else }}
+  <img src="{{ with $img }}{{ .RelPermalink }}{{ else }}{{ $src }}{{ end }}" alt="{{ $alt }}"{{ with .Get "width" }} width="{{ . }}"{{ end }} loading="lazy" decoding="async">
+{{- end }}
+  {{- with .Get "caption" }}
+  <figcaption><p>{{ . | markdownify }}</p></figcaption>
+  {{- end }}
+</figure>

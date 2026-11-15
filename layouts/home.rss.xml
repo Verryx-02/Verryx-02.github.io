@@ -1,0 +1,30 @@
+{{- /* Site feed: the published posts of every server room, newest first (every regular
+       page is a post; blanking panels are not pages, so they never appear here). */ -}}
+{{- $limit := site.Config.Services.RSS.Limit -}}
+{{- $pages := site.RegularPages -}}
+{{- if ge $limit 1 }}{{ $pages = first $limit $pages }}{{ end -}}
+{{- printf "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>" | safeHTML }}
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>{{ site.Title }}</title>
+    <link>{{ .Permalink }}</link>
+    <description>{{ site.Params.description }}</description>
+    <language>{{ site.Language.Locale }}</language>
+    {{- with $pages }}
+    <lastBuildDate>{{ (index . 0).Lastmod.Format "Mon, 02 Jan 2006 15:04:05 -0700" | safeHTML }}</lastBuildDate>
+    {{- end }}
+    {{- with .OutputFormats.Get "rss" }}
+    {{ printf "<atom:link href=%q rel=\"self\" type=%q />" .Permalink .MediaType | safeHTML }}
+    {{- end }}
+    {{- range $pages }}
+    <item>
+      <title>{{ .Title }}</title>
+      <link>{{ .Permalink }}</link>
+      <pubDate>{{ .PublishDate.Format "Mon, 02 Jan 2006 15:04:05 -0700" | safeHTML }}</pubDate>
+      <guid>{{ .Permalink }}</guid>
+      {{- /* Plain text, entities decoded: HTML entities such as &rsquo; are undefined in XML. */}}
+      <description>{{ with .Params.summary }}{{ . }}{{ else }}{{ .Summary | plainify | htmlUnescape | strings.TrimSpace }}{{ end }}</description>
+    </item>
+    {{- end }}
+  </channel>
+</rss>

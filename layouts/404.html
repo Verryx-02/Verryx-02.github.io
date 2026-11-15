@@ -1,0 +1,11 @@
+{{ define "band" }}
+  {{- partial "band.html" (dict "title" "Page not found") }}
+{{ end }}
+
+{{ define "main" }}
+<div class="container">
+  <div class="card prose intro">
+    <p>This page does not exist, or it has moved. Start again from the <a href="{{ "/" | relURL }}">home page</a>.</p>
+  </div>
+</div>
+{{ end }}

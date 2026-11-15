@@ -1,0 +1,63 @@
+baseURL = "https://verryx-02.github.io/"
+locale = "en-US"
+title = "Verryx"
+enableRobotsTXT = true
+enableGitInfo = false
+summaryLength = 40
+# Auto-generated titles (such as the "Tags" page) keep sentence case.
+titleCaseStyle = "firstupper"
+
+[params]
+  author = "Francesco Verrengia"
+  alias = "Verryx"
+  description = "Francesco Verrengia (Verryx) documents his homelab journey: Linux, Proxmox, networking and DevOps, mistakes included."
+  github = "https://github.com/Verryx-02"
+  # First year shown in the footer copyright range.
+  startYear = 2026
+
+# Comments under each post, stored in this repository's GitHub Discussions (giscus.app).
+# Nothing is rendered (no script, no panel) until both repoId and categoryId are set:
+# copy them from https://giscus.app (docs/Maintaining.md, "Comments").
+[params.giscus]
+  repo = "Verryx-02/Verryx-02.github.io"
+  repoId = ""
+  category = "Comments"
+  categoryId = ""
+  mapping = "pathname"
+  reactionsEnabled = true
+  inputPosition = "top"
+  lang = "en"
+
+# Post bundles publish only the files a template asks for (the figure shortcode's resized
+# WebP copies), not the original photos. A bundle file linked by plain Markdown would not be
+# published: reference bundle files through the figure shortcode.
+[[cascade]]
+  [cascade.build]
+    publishResources = false
+  [cascade.target]
+    kind = "page"
+
+# URLs follow the content tree (docs/adr/0003-themed-rooms-switch.md), no permalinks: a room is
+# /<room>/, a rack /<room>/<rack>/, a post /<room>/<rack>/<post folder>/.
+# Sections (rooms and racks) build HTML only: the one feed is the site's (layouts/home.rss.xml).
+[outputs]
+  section = ["html"]
+
+[taxonomies]
+  tag = "tags"
+
+[markup]
+  [markup.goldmark.renderer]
+    unsafe = false
+  [markup.highlight]
+    codeFences = true
+    noClasses = false
+    guessSyntax = false
+    lineNos = false
+
+[services.rss]
+  limit = 20
+
+[minify.tdewolff.html]
+  # Keep attribute quotes so scripts/check.sh can parse the output reliably.
+  keepQuotes = true

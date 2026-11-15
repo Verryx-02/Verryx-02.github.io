@@ -1,0 +1,53 @@
+/* Syntax highlighting for Hugo's Chroma output (markup.highlight.noClasses = false).
+   Code blocks are a terminal, so there is one dark token palette. */
+:root {
+  --c-keyword: #9fc4ff;
+  --c-string: #8fe3a8;
+  --c-comment: #6f7d98;
+  --c-number: #d6e4ff;
+  --c-func: #e6dccb;
+  --c-type: #b8c7e0;
+  --c-attr: #d6e4ff;
+  --c-deleted: #ff8f8f;
+  --c-inserted: #8fe3a8;
+  --c-hl: rgba(159, 196, 255, 0.12);
+}
+
+.chroma { color: var(--term-text); }
+.chroma .err { color: var(--c-deleted); }
+.chroma .hl { display: block; background: var(--c-hl); }
+.chroma .lnt,
+.chroma .ln { margin-right: 0.8em; padding: 0 0.4em 0 0; color: var(--c-comment); user-select: none; }
+.chroma .lntable { border-spacing: 0; }
+.chroma .lntd { padding: 0; vertical-align: top; }
+
+/* Keywords */
+.chroma .k, .chroma .kc, .chroma .kd, .chroma .kn, .chroma .kp, .chroma .kr { color: var(--c-keyword); }
+.chroma .kt { color: var(--c-type); }
+/* Names */
+.chroma .na { color: var(--c-attr); }
+.chroma .nb, .chroma .bp { color: var(--c-func); }
+.chroma .nc, .chroma .nn, .chroma .ne { color: var(--c-type); }
+.chroma .nd, .chroma .ni { color: var(--c-attr); }
+.chroma .nf, .chroma .fm { color: var(--c-func); }
+.chroma .nt { color: var(--c-keyword); }
+.chroma .nv, .chroma .vc, .chroma .vg, .chroma .vi { color: var(--c-attr); }
+/* Literals */
+.chroma .s, .chroma .sa, .chroma .sb, .chroma .sc, .chroma .dl, .chroma .sd, .chroma .s2,
+.chroma .sh, .chroma .si, .chroma .sx, .chroma .sr, .chroma .s1, .chroma .ss { color: var(--c-string); }
+.chroma .se { color: var(--c-number); }
+.chroma .m, .chroma .mb, .chroma .mf, .chroma .mh, .chroma .mi, .chroma .il, .chroma .mo { color: var(--c-number); }
+/* Operators and punctuation */
+.chroma .o, .chroma .ow { color: var(--c-keyword); }
+.chroma .p { color: var(--term-text); }
+/* Comments */
+.chroma .c, .chroma .ch, .chroma .cm, .chroma .c1, .chroma .cs { color: var(--c-comment); font-style: italic; }
+.chroma .cp, .chroma .cpf { color: var(--c-type); font-style: normal; }
+/* Generic (diffs, shell output) */
+.chroma .gd { color: var(--c-deleted); }
+.chroma .gi { color: var(--c-inserted); }
+.chroma .ge { font-style: italic; }
+.chroma .gs { font-weight: 700; }
+.chroma .gh, .chroma .gu { color: var(--c-func); font-weight: 700; }
+.chroma .gp { color: var(--c-comment); user-select: none; }
+.chroma .go { color: var(--c-comment); }

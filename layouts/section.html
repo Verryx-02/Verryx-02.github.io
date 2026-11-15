@@ -1,0 +1,25 @@
+{{- /* A server room page (the section's parent is the home) or a rack page (its parent is a
+       room). A closed one (no published post, is-open.html) says so; head.html marks it
+       noindex and layouts/sitemap.xml leaves it out. */ -}}
+{{ define "band" }}
+  {{- if .Parent.IsHome }}
+    {{- partial "band.html" (dict "title" .Title "kicker" "Server room" "plate" .Params.plate) }}
+  {{- else }}
+    {{- partial "band.html" (dict "title" .Title "crumbs" (slice .Parent) "kicker" "Rack") }}
+  {{- end }}
+{{ end }}
+
+{{ define "main" }}
+{{- $room := .Parent.IsHome }}
+<div class="container{{ if $room }} container--room{{ end }}">
+  {{- with .Content }}<div class="card prose intro">{{ . }}</div>{{ end }}
+  {{- if not (partialCached "is-open.html" . .Path) }}
+  <p class="notice">Closed: no posts yet.</p>
+  {{- end }}
+  {{- if $room }}
+    {{- partial "floor.html" (dict "room" . "heading" false) }}
+  {{- else }}
+    {{- partial "rack.html" (dict "rack" . "compact" false) }}
+  {{- end }}
+</div>
+{{ end }}

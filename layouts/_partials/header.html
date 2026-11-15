@@ -1,0 +1,17 @@
+<header class="site-header">
+  <div class="site-header__inner">
+    <a class="wordmark" href="{{ "/" | relURL }}"{{ if .IsHome }} aria-current="page"{{ end }}>{{ site.Params.alias | default site.Title }}</a>
+    <div class="site-header__tools">
+      {{- with site.Params.github }}
+      <a class="icon-link" href="{{ . }}" aria-label="GitHub profile" title="GitHub">
+        {{- partial "icon.html" "github" -}}
+      </a>
+      {{- end }}
+      {{- with site.Home.OutputFormats.Get "rss" }}
+      <a class="icon-link" href="{{ .RelPermalink }}" aria-label="RSS feed" title="RSS feed">
+        {{- partial "icon.html" "rss" -}}
+      </a>
+      {{- end }}
+    </div>
+  </div>
+</header>

@@ -1,0 +1,2090 @@
+/* Verryx blog: "rack at night". Plain CSS, no preprocessor.
+   The blog is a server room seen in the dark: racks with rails and square holes, each
+   post a 1U unit with screws, a unit number and a status LED (green when published, red
+   on a blanking panel). Dark only: one token set.
+   This file goes through resources.ExecuteAsTemplate only for the relURL font paths below. */
+
+/* ----------------------------------------------------------------- fonts -- */
+/* Self-hosted (static/fonts, SIL OFL; see the OFL-*.txt files there). D-DIN is the full,
+   unmodified Latin file; the Iosevka files are subset to Latin plus the arrows and the
+   ▪ ▸ ◂ ● symbols the rack uses (docs/Maintaining.md, "Fonts"), hence their unicode-range.
+   head.html preloads D-DIN Bold and Iosevka Etoile roman, the faces used above the fold. */
+@font-face {
+  font-family: "D-DIN";
+  src: url("{{ "fonts/d-din-400.woff2" | relURL }}") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "D-DIN";
+  src: url("{{ "fonts/d-din-700.woff2" | relURL }}") format("woff2");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "D-DIN Condensed";
+  src: url("{{ "fonts/d-din-condensed-400.woff2" | relURL }}") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "D-DIN Condensed";
+  src: url("{{ "fonts/d-din-condensed-700.woff2" | relURL }}") format("woff2");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Iosevka Etoile";
+  src: url("{{ "fonts/iosevka-etoile-400.woff2" | relURL }}") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2190-2193, U+2212, U+2215, U+25AA, U+25B8, U+25C2, U+25CF, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Iosevka Etoile";
+  src: url("{{ "fonts/iosevka-etoile-400-italic.woff2" | relURL }}") format("woff2");
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2190-2193, U+2212, U+2215, U+25AA, U+25B8, U+25C2, U+25CF, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Iosevka Etoile";
+  src: url("{{ "fonts/iosevka-etoile-700.woff2" | relURL }}") format("woff2");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2190-2193, U+2212, U+2215, U+25AA, U+25B8, U+25C2, U+25CF, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Iosevka";
+  src: url("{{ "fonts/iosevka-400.woff2" | relURL }}") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2190-2193, U+2212, U+2215, U+25AA, U+25B8, U+25C2, U+25CF, U+FEFF, U+FFFD;
+}
+
+
+/* ---------------------------------------------------------------- tokens -- */
+/* The rack frame: header, band, terminal. */
+:root {
+  --frame: #000000;
+  --frame-line: #18223a;
+  --band-bg: #081022;
+  --band-text: #e9eef8;
+  --band-muted: #8e9bb5;
+  --band-mesh: rgba(170, 195, 255, 0.07);
+  --term-bg: #05080e;
+  --term-text: #d7deea;
+  --term-line: #1a2540;
+  --prompt: #3ee08a;
+  --ice: #9fc4ff; /* the accent: ice blue */
+
+  /* Titles in D-DIN, labels in D-DIN Condensed, reading text in Iosevka Etoile (slab,
+     quasi-proportional), code, dates and port numbers in Iosevka. */
+  --display: "D-DIN", "DIN Alternate", "Helvetica Neue", Arial, system-ui, sans-serif;
+  --label: "D-DIN Condensed", "DIN Condensed", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --serif: "Iosevka Etoile", "Iowan Old Style", Georgia, serif;
+  --mono: "Iosevka", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --measure: 740px;
+  --gutter: 16px;
+  --port-min: 125px; /* the narrowest switch port in the one-row layout: "CYBERSECURITY" fits whole */
+  --radius: 3px;
+  --nav-height: 58px;
+  --header-height: calc(var(--nav-height) + 1px); /* the bar plus its bottom border */
+  --ear: 76px; /* left "rack ear" of a unit: unit number and LED */
+}
+
+/* The server room with the lights off: dark steel panels, light text. */
+:root {
+  --bg: #04060a;
+  --bg-top: #07101f;
+  --panel: #0d1628;
+  --panel-edge: #1d2b47;
+  --panel-hi: rgba(160, 190, 255, 0.08);
+  --panel-lo: rgba(0, 0, 0, 0.65);
+  --inset: #081020;
+  --ink: #eef3fb;
+  --text: #c4cee0;
+  --muted: #8391ab;
+  --accent: #9fc4ff;
+  --accent-soft: rgba(159, 196, 255, 0.14);
+  --led: #3ee08a;
+  --led-glow: rgba(62, 224, 138, 0.6);
+  --led-blank: #ff4d4d; /* blanking panel LED: 5.5:1 against --panel */
+  --led-blank-glow: rgba(255, 77, 77, 0.5);
+  --port-unlit: #262d3b; /* an unlit switch port LED (never a unit's: blanks stay red) */
+  --cable-unlit: #3b404a; /* the dark grey patch cable of a closed room */
+  --led-unpowered: #262d3b; /* a unit LED in a powered-off rack (a closed room's floor) only */
+  --dust-cap: #2a2f38; /* the rubber dust cap closing a spare switch port */
+  --panel-blank: #0a1222;
+  --screw: #2b3a57;
+  --screw-ring: #0a1120;
+  --rail: #0b111d;
+  --hole: #000000;
+  --border: rgba(150, 175, 220, 0.13);
+  --code-inline-bg: rgba(150, 175, 220, 0.11);
+  --shadow: 0 14px 28px -16px rgba(0, 0, 0, 0.9);
+  color-scheme: dark;
+}
+
+/* A screw head: a dot with a darker ring. Used four times per panel. */
+:root {
+  --screw-img: radial-gradient(circle at 50% 50%, var(--screw) 0 2.6px, var(--screw-ring) 3px 4.2px, transparent 4.6px);
+}
+
+/* ------------------------------------------------------------------ base -- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* Anchors land below the fixed header; no rubber-band bounce past either end. */
+  scroll-padding-top: var(--header-height);
+  overscroll-behavior: none;
+}
+
+body {
+  margin: 0;
+  padding-top: var(--header-height); /* room for the fixed header */
+  min-height: 100vh;
+  overscroll-behavior: none;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(to bottom, var(--bg-top), var(--bg) 640px) var(--bg);
+  color: var(--text);
+  font-family: var(--serif);
+  font-size: 1.0625rem; /* 17px: Iosevka Etoile is wide */
+  line-height: 1.7;
+  overflow-wrap: break-word;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The main area keeps its content height (so the rack's plinth sits right under the last
+   unit); the footer takes any spare height by pushing itself to the bottom. */
+.main {
+  flex: 0 0 auto;
+  padding: 36px 0 64px;
+}
+.main:focus {
+  outline: none;
+}
+
+img,
+video {
+  max-width: 100%;
+  height: auto;
+}
+
+a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.22em;
+}
+a:hover {
+  color: var(--accent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+::selection {
+  background: var(--ice);
+  color: #05080e;
+}
+
+.skip-link {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 100;
+  padding: 8px 14px;
+  border: 1px solid var(--ice);
+  background: var(--frame);
+  color: var(--ice);
+  font-family: var(--label);
+  font-size: 0.85rem;
+  transform: translateY(-200%);
+}
+.skip-link:focus {
+  transform: none;
+}
+
+.container {
+  position: relative;
+  width: 100%;
+  max-width: calc(var(--measure) + 2 * var(--gutter));
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+
+/* A rack panel: brushed edge, four screws, square corners. */
+.card {
+  position: relative;
+  background-color: var(--panel);
+  background-image: var(--screw-img), var(--screw-img), var(--screw-img), var(--screw-img);
+  background-repeat: no-repeat;
+  background-size: 10px 10px;
+  background-position: left 9px top 9px, right 9px top 9px, left 9px bottom 9px, right 9px bottom 9px;
+  border: 1px solid var(--panel-edge);
+  border-radius: var(--radius);
+  box-shadow: inset 0 1px 0 var(--panel-hi), inset 0 -1px 0 var(--panel-lo), var(--shadow);
+}
+
+.empty {
+  color: var(--muted);
+  font-family: var(--label);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* ---------------------------------------------------------------- header -- */
+/* Fixed, not sticky: the bar never moves, whatever the page does. Its own view-transition
+   name keeps it still while the rest of the page fades on navigation. */
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  height: var(--header-height);
+  view-transition-name: site-header;
+  background: var(--frame);
+  border-bottom: 1px solid var(--frame-line);
+  font-family: var(--label);
+}
+
+.site-header__inner {
+  display: flex;
+  align-items: center;
+  gap: 8px 24px;
+  max-width: 1120px;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+/* The wordmark carries the rack's power LED. */
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--band-text);
+  font-family: var(--display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+.wordmark::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--prompt);
+  box-shadow: 0 0 8px rgba(62, 224, 138, 0.75);
+}
+.wordmark:hover {
+  color: var(--ice);
+}
+
+.site-header__tools {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.icon-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  background: transparent;
+  color: var(--band-muted);
+  cursor: pointer;
+}
+.icon-link:hover {
+  color: var(--ice);
+  border-color: var(--frame-line);
+}
+
+/* ------------------------------------------------------------------ band -- */
+/* The perforated mesh of a rack door. */
+.band {
+  background:
+    radial-gradient(circle, var(--band-mesh) 1.3px, transparent 1.8px) 0 0 / 9px 9px,
+    linear-gradient(to bottom, #050a16, var(--band-bg));
+  border-bottom: 1px solid var(--frame-line);
+  color: var(--band-text);
+}
+
+.band__inner {
+  max-width: calc(var(--measure) + 2 * var(--gutter));
+  margin: 0 auto;
+  padding: 28px var(--gutter) 30px;
+}
+
+.band__kicker {
+  margin: 0 0 10px;
+  color: var(--ice);
+  font-family: var(--label);
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.band__title {
+  margin: 0;
+  color: var(--band-text);
+  font-family: var(--display);
+  font-size: clamp(1.6rem, 1.3rem + 1.2vw, 2.1rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+.band__plate {
+  margin: 10px 0 0;
+  color: var(--band-muted);
+  font-family: var(--label);
+  font-size: 0.85rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.band__kicker a {
+  color: inherit;
+  text-decoration-color: currentColor;
+}
+.band__kicker a:hover {
+  color: var(--band-text);
+}
+.band__kicker .sep {
+  margin: 0 0.6em;
+  color: var(--band-muted);
+}
+
+@media (max-width: 599px) {
+  .band__inner {
+    padding-top: 24px;
+    padding-bottom: 26px;
+  }
+}
+
+/* ------------------------------------------------------------------ rack -- */
+/* A rack: the top cap with its label plate (the rack's name and subtitle, from markup), two
+   rails with square cage-nut holes either side of the units, and a vented plinth on two
+   feet. Several racks can share a page (the server room on the home page).
+   Every rack is one standard size: the label plate has a fixed height (the name clamped to
+   2 lines, or 1 above a subtitle), compact racks have a fixed width (--rack-w, .floor__racks)
+   and show all their units, each one fixed height: at least 3, a rack with more grows by whole
+   units (no bay ever scrolls: a scrolling bay captured the wheel and blocked the page). */
+.rack {
+  --rail-w: 20px;
+  --plinth: 46px;
+  --cap-h: 46px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: var(--plinth);
+}
+
+/* Top cap, with the rack's label plate. */
+.rack__cap {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  height: var(--cap-h);
+  padding: 0 30px;
+  overflow: hidden;
+  border: 1px solid var(--panel-edge);
+  border-bottom: 2px solid #000;
+  background:
+    var(--screw-img) left 12px center / 10px 10px no-repeat,
+    var(--screw-img) right 12px center / 10px 10px no-repeat,
+    linear-gradient(to bottom, #182540, #0b1324);
+  box-shadow: inset 0 1px 0 var(--panel-hi), 0 8px 18px -10px #000;
+  color: var(--muted);
+  font-family: var(--label);
+  font-size: 0.72rem;
+  line-height: 1.4;
+  letter-spacing: 0.12em;
+  text-align: center;
+  text-transform: uppercase;
+}
+.rack__name,
+.rack__plate {
+  margin: 0;
+  font: inherit;
+}
+.rack__name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--band-text);
+  font-weight: 700;
+}
+.rack__cap:has(.rack__plate) .rack__name {
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+}
+.rack__name a {
+  color: inherit;
+  text-decoration: none;
+}
+.rack__name a:hover {
+  color: var(--ice);
+}
+.rack__plate {
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* The bay between the rails, where the units are mounted. */
+.rack__bay {
+  flex: 1 1 auto; /* racks side by side stretch to the same height */
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  margin: 0;
+  padding: 8px calc(var(--rail-w) + 4px);
+  list-style: none;
+  background:
+    repeating-linear-gradient(to bottom, transparent 0 9px, var(--hole) 9px 16px, transparent 16px 22px) left calc(var(--rail-w) / 2 - 3px) top / 7px 100% no-repeat,
+    repeating-linear-gradient(to bottom, transparent 0 9px, var(--hole) 9px 16px, transparent 16px 22px) right calc(var(--rail-w) / 2 - 3px) top / 7px 100% no-repeat,
+    linear-gradient(var(--border), var(--border)) left var(--rail-w) top / 1px 100% no-repeat,
+    linear-gradient(var(--border), var(--border)) right var(--rail-w) top / 1px 100% no-repeat,
+    linear-gradient(var(--rail), var(--rail)) left top / var(--rail-w) 100% no-repeat,
+    linear-gradient(var(--rail), var(--rail)) right top / var(--rail-w) 100% no-repeat;
+}
+
+/* Plinth: a vented base, then two feet. */
+.rack::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--plinth);
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(90deg, #000 0 26px, transparent 26px 36px) center 14px / 62% 6px no-repeat,
+    linear-gradient(to bottom, var(--panel-edge), var(--panel-edge)) 0 0 / 100% 1px no-repeat,
+    linear-gradient(to bottom, #131f37, #0a1222) 0 0 / 100% calc(var(--plinth) - 12px) no-repeat,
+    linear-gradient(#1a2640, #0d1628) left 22px bottom 0 / 56px 12px no-repeat,
+    linear-gradient(#1a2640, #0d1628) right 22px bottom 0 / 56px 12px no-repeat;
+}
+
+/* A full rack (rack and post pages) keeps the reading measure between its rails on wide
+   screens; on narrow screens the rails slim down instead. */
+@media (min-width: 1000px) {
+  .rack:not(.rack--compact) {
+    margin-inline: calc(-1 * (var(--rail-w) + 4px));
+  }
+}
+@media (max-width: 999px) {
+  .rack {
+    --rail-w: 10px;
+  }
+}
+@media (max-width: 599px) {
+  .rack {
+    --rail-w: 6px;
+    --plinth: 34px;
+  }
+  .rack__bay {
+    padding-inline: calc(var(--rail-w) + 2px);
+  }
+}
+
+/* ------------------------------------------------------------ server room -- */
+/* The home page and the room pages use the full-width container: the console, the switch,
+   and the floors of racks: racks of one standard size, side by side as many as fit (rows line
+   up exactly, like real racks). The room container fits the one-row switch: 8 ports of
+   --port-min plus both cable trays and the gutters, with room to spare. */
+.container--room {
+  max-width: calc(8 * var(--port-min) + 180px); /* 1180px */
+}
+
+/* The home page's server hall: the core switch above the floors, and two vertical cable trays
+   (ladders) down its sides, one lane per room they carry. The left tray takes the rooms on
+   the first half of the switch ports (--left, inline on the hall: rooms 1..L), lane 1
+   outermost; the right tray the others (rooms L+1..N), lane L+1 innermost. Every cable drops
+   from its switch port into its own lane and runs down its tray; at its room's floor it turns
+   out of the tray into the patch panel on that side of the floor heading, so at floor k each
+   tray carries its rooms from k on. The left tray must reverse the port order (port 1 nearest
+   it, room 1 leaving it first), so a cable leaving it lifts over the ones still in it; no
+   other cable crosses another. The floors' stretches of tray (.tray) are contiguous: floors
+   have no gap between them, only padding. */
+.server-hall {
+  --cw: 4px; /* cable width */
+  --lane: 8px; /* tray lane pitch */
+  --tray-pad: 8px;
+  --tray-l-w: calc(2 * var(--tray-pad) + var(--left, 0) * var(--lane));
+  --tray-r-w: calc(2 * var(--tray-pad) + (var(--rooms, 0) - var(--left, 0)) * var(--lane));
+  --bend: 8px; /* cable bend radius */
+  --head-h: 40px; /* floor heading height: the patch cable runs along its middle */
+  position: relative;
+  isolation: isolate; /* the cables' stacking stays inside the hall, under the header */
+  margin-top: 44px;
+  padding-right: var(--tray-r-w);
+  padding-left: var(--tray-l-w);
+}
+/* The ladders: two side rails and rungs each, behind the cables, the full height of the hall. */
+.server-hall::before,
+.server-hall::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: -1;
+  background:
+    linear-gradient(var(--panel-edge), var(--panel-edge)) left top / 2px 100% no-repeat,
+    linear-gradient(var(--panel-edge), var(--panel-edge)) right top / 2px 100% no-repeat,
+    repeating-linear-gradient(to bottom, transparent 0 13px, var(--frame-line) 13px 16px),
+    rgba(4, 7, 13, 0.7);
+}
+.server-hall::before {
+  left: 0;
+  width: var(--tray-l-w);
+}
+.server-hall::after {
+  right: 0;
+  width: var(--tray-r-w);
+}
+@media (max-width: 599px) {
+  .server-hall {
+    --cw: 3px;
+    --lane: 5px;
+    --tray-pad: 5px;
+    --bend: 5px;
+    margin-top: 32px;
+  }
+}
+
+.server-view {
+  display: grid;
+}
+
+/* A floor's stretches of the two trays: the lanes of this room and the next ones in each,
+   packed against the right rail. Right tray: lane i (rooms L+1..N) sits at --tray-pad +
+   (i - L - 1) * --lane from its inner rail; left tray: lane i (rooms 1..L) at --tray-pad +
+   (i - 1) * --lane from its outer rail. The switch cables land in the same lanes. */
+.tray {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 var(--tray-pad);
+  overflow: hidden; /* clips the exiting cable at the inner rail, where the floor cable goes on */
+  pointer-events: none;
+}
+.tray--left {
+  right: 100%;
+  width: var(--tray-l-w);
+}
+.tray--right {
+  left: 100%;
+  width: var(--tray-r-w);
+}
+.tray__cable {
+  position: relative;
+  flex: 0 0 var(--lane);
+}
+.tray__cable::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(50% - var(--cw) / 2);
+  width: var(--cw);
+  background: var(--cable);
+}
+.tray__cable--up {
+  --cable: var(--ice);
+}
+.tray__cable--down {
+  --cable: var(--cable-unlit);
+}
+/* This room's cable: down its lane to the heading's middle, then out of the tray. Right
+   tray: it turns left, off the inner rail. */
+.tray__cable--exit::before {
+  right: calc(50% - var(--cw) / 2);
+  bottom: auto;
+  left: auto;
+  width: var(--tray-r-w);
+  height: calc(var(--head-h) / 2 + var(--cw) / 2);
+  border: 0 solid var(--cable);
+  border-right-width: var(--cw);
+  border-bottom-width: var(--cw);
+  border-bottom-right-radius: var(--bend);
+  background: none;
+}
+/* Left tray: it turns right, lifting over the cables still in the tray (drawn above them). */
+.tray--left .tray__cable--exit::before {
+  right: auto;
+  left: calc(50% - var(--cw) / 2);
+  z-index: 1;
+  width: var(--tray-l-w);
+  border-right-width: 0;
+  border-left-width: var(--cw);
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: var(--bend);
+  filter: drop-shadow(0 0 1px #000);
+}
+
+.floor {
+  position: relative;
+  padding-bottom: 44px;
+}
+.floor--up {
+  --cable: var(--ice);
+}
+.floor--down {
+  --cable: var(--cable-unlit);
+}
+
+/* The heading: room name, plate and the 1U patch panel, one group centred in the floor (the
+   first and last columns are equal flexible tracks), and the cable from the tray into the
+   patch jack, filling the outer column on its tray's side (right tray: name, plate, patch,
+   cable; left tray: cable, patch, name, plate). */
+.floor__head {
+  display: grid;
+  grid-template-columns: minmax(14px, 1fr) minmax(0, max-content) minmax(0, max-content) minmax(0, max-content) minmax(14px, 1fr);
+  align-items: center;
+  height: var(--head-h);
+  margin: 0 0 16px;
+  background: repeating-linear-gradient(to right, var(--border) 0 4px, transparent 4px 8px) left bottom / 100% 1px no-repeat;
+}
+.floor__name {
+  grid-row: 1;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: var(--ice);
+  font-family: var(--label);
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.floor--down .floor__name {
+  color: var(--muted);
+}
+.floor__name a {
+  color: inherit;
+  text-decoration: none;
+}
+.floor__name a:hover {
+  color: var(--ink);
+}
+.floor__plate {
+  grid-row: 1;
+  min-width: 0;
+  margin: 0;
+  padding-left: 0.8em;
+  overflow: hidden;
+  border-left: 1px solid var(--accent);
+  color: var(--muted);
+  font-family: var(--label);
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* The patch panel: a 1U strip with one RJ45 port, its link LED as on the switch port. */
+.patch {
+  display: flex;
+  grid-row: 1;
+  align-items: center;
+  gap: 7px;
+  height: 26px;
+  padding-left: 9px;
+  border: 1px solid var(--frame-line);
+  border-right: 0;
+  border-radius: 2px 0 0 2px;
+  background: linear-gradient(to bottom, #0d1526, #04070d);
+}
+.patch__led {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+.patch--up .patch__led {
+  background: var(--led);
+  box-shadow: 0 0 7px var(--led-glow), 0 0 2px var(--led);
+}
+.patch--down .patch__led {
+  background: var(--port-unlit);
+  box-shadow: none;
+}
+/* The socket, open to the right, with the plug's boot (cable colour) seated in it. */
+.patch__jack {
+  position: relative;
+  width: 22px;
+  height: 18px;
+  border: 2px solid #1c2538;
+  border-right: 0;
+  border-radius: 2px 0 0 2px;
+  background: #000;
+  box-shadow: inset 0 2px 4px #000;
+}
+.patch__jack::after {
+  content: "";
+  position: absolute;
+  inset: 4px 0 4px 5px;
+  border-radius: 2px 0 0 2px;
+  background: var(--cable);
+  opacity: 0.92;
+}
+.floor__cable {
+  grid-row: 1;
+  justify-self: stretch;
+  height: var(--cw);
+  background: var(--cable);
+}
+/* A right-tray room: name, plate, the patch panel, the cable on to the right tray. */
+.floor--right .floor__name {
+  grid-column: 2;
+  margin-right: 0.8em;
+}
+.floor--right .floor__plate {
+  grid-column: 3;
+  margin-right: 0.8em;
+}
+.floor--right .patch {
+  grid-column: 4;
+}
+.floor--right .floor__cable {
+  grid-column: 5;
+}
+/* A left-tray room: the cable comes in from the left tray, so the patch panel stands before
+   the name, mirrored (socket open to the left). */
+.floor--left .floor__cable {
+  grid-column: 1;
+}
+.floor--left .floor__name {
+  grid-column: 3;
+}
+.floor--left .floor__plate {
+  grid-column: 4;
+  margin-left: 0.8em;
+}
+.floor--left .patch {
+  grid-column: 2;
+  flex-direction: row-reverse;
+  margin-right: 0.9em;
+  padding: 0 9px 0 0;
+  border-right: 1px solid var(--frame-line);
+  border-left: 0;
+  border-radius: 0 2px 2px 0;
+}
+.floor--left .patch__jack {
+  border-right: 2px solid #1c2538;
+  border-left: 0;
+  border-radius: 0 2px 2px 0;
+}
+.floor--left .patch__jack::after {
+  inset: 4px 5px 4px 0;
+  border-radius: 0 2px 2px 0;
+}
+
+/* Racks stand side by side, all one width, top-aligned (caps and units are fixed sizes), the
+   rows centred. */
+.floor__racks {
+  --rack-w: min(100%, 236px);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start; /* a rack with more units is taller; its neighbours keep their height */
+  justify-content: center; /* every row centred between the trays (the room page: in the container) */
+  gap: 30px 16px;
+}
+.floor__racks > .rack {
+  flex: 0 0 var(--rack-w);
+  min-width: 0;
+}
+
+/* A closed room or rack page (no published post yet). */
+.notice {
+  margin: 0 0 28px;
+  padding: 12px 16px;
+  border: 1px dashed var(--panel-edge);
+  border-radius: 2px;
+  color: var(--muted);
+  font-family: var(--label);
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.rack--compact {
+  --rail-w: 14px;
+  --plinth: 30px;
+  --ear: 44px;
+  --unit-h: 62px;
+  --bay-gap: 4px;
+  --bay-pad: 6px;
+}
+/* One row of --unit-h per unit: a rack with more than 3 units is taller by whole units. */
+.rack--compact .rack__bay {
+  flex: none;
+  grid-auto-rows: var(--unit-h);
+  gap: var(--bay-gap);
+  padding: var(--bay-pad) calc(var(--rail-w) + 3px);
+}
+
+/* A powered-off rack (a closed room's floor): no name, blanking panels with unlit LEDs. */
+.rack--off .unit::after {
+  background: var(--led-unpowered);
+  box-shadow: none;
+  animation: none;
+}
+
+/* ----------------------------------------------------------------- units -- */
+/* Posts are 1U units mounted in a rack: tight gaps, unit number and LED in the ear. */
+.unit-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.unit {
+  padding: 22px 30px 22px calc(var(--ear) + 20px);
+  background-image:
+    var(--screw-img), var(--screw-img), var(--screw-img), var(--screw-img),
+    linear-gradient(var(--border), var(--border));
+  background-size: 10px 10px, 10px 10px, 10px 10px, 10px 10px, 1px calc(100% - 24px);
+  background-position:
+    left 9px top 9px, right 9px top 9px, left 9px bottom 9px, right 9px bottom 9px,
+    left var(--ear) top 12px;
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+/* Hovering slides a published unit out on its rails. */
+.unit--live:hover {
+  transform: translateX(8px);
+  border-color: var(--accent);
+}
+.unit--live:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* Unit number = the unit's position in its rack (markup, not a counter). */
+.unit__label {
+  position: absolute;
+  top: 24px;
+  left: 0;
+  width: var(--ear);
+  color: var(--muted);
+  font-family: var(--label);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-align: center;
+}
+/* Status LED: published units are up, green, their activity out of sync. */
+.unit::after {
+  content: "";
+  position: absolute;
+  top: 52px;
+  left: calc(var(--ear) / 2 - 4px);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--led);
+  box-shadow: 0 0 10px var(--led-glow), 0 0 2px var(--led);
+  animation: activity 3.2s infinite;
+}
+.unit:nth-child(2n)::after {
+  animation-delay: 1.3s;
+}
+.unit:nth-child(3n)::after {
+  animation-delay: 2.1s;
+}
+
+@keyframes activity {
+  0%, 100% { opacity: 1; }
+  8% { opacity: 0.35; }
+  12% { opacity: 1; }
+  15% { opacity: 0.45; }
+  19% { opacity: 1; }
+  61% { opacity: 1; }
+  64% { opacity: 0.4; }
+  68% { opacity: 1; }
+}
+
+/* Blanking panel: a position with no published post. Plain plate, red steady LED, not
+   clickable; its planned title, if any, in muted text. */
+.unit--blank {
+  background-color: var(--panel-blank);
+  box-shadow: inset 0 1px 0 var(--panel-hi), inset 0 -1px 0 var(--panel-lo);
+}
+.unit--blank::after {
+  background: var(--led-blank);
+  box-shadow: 0 0 9px var(--led-blank-glow), 0 0 2px var(--led-blank);
+  animation: none;
+}
+.unit--blank .unit__title {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.unit__title {
+  margin: 0 0 8px;
+  color: var(--ink);
+  font-family: var(--display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.005em;
+}
+.unit__title a {
+  color: var(--ink);
+  text-decoration: none;
+}
+.unit__title a:focus-visible {
+  outline: none;
+}
+/* The whole unit is the click target. */
+.unit__title a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.unit__line {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.unit__kicker {
+  margin: 0 0 6px;
+  color: var(--accent);
+  font-family: var(--label);
+  font-size: 0.74rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.unit__kicker .sep {
+  margin: 0 0.5em;
+  color: var(--muted);
+}
+
+.unit__date {
+  margin-right: 6px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.unit__status {
+  color: var(--muted);
+  font-family: var(--label);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Compact units (home floors, room pages): label, LED and title only, all one height; the
+   title is clamped to 2 lines (the link and screen readers keep it whole). */
+.rack--compact .unit {
+  display: flex;
+  align-items: center;
+  height: var(--unit-h);
+  padding: 0 12px 0 calc(var(--ear) + 10px);
+  background-size: 8px 8px, 8px 8px, 8px 8px, 8px 8px, 1px calc(100% - 16px);
+  background-position:
+    left 4px top 4px, right 4px top 4px, left 4px bottom 4px, right 4px bottom 4px,
+    left var(--ear) top 8px;
+}
+.rack--compact .unit--live:hover {
+  transform: translateX(4px);
+}
+.rack--compact .unit__label {
+  top: 13px;
+  font-size: 0.68rem;
+}
+.rack--compact .unit::after {
+  top: 35px;
+  left: calc(var(--ear) / 2 - 3.5px);
+  width: 7px;
+  height: 7px;
+}
+.rack--compact .unit__title {
+  margin: 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  font-size: 0.98rem;
+  line-height: 1.3;
+}
+
+/* Full units (rack page): every unit one height, title and opening text 2 lines each. */
+.rack--full {
+  --unit-full-h: calc(54px + 6.64rem); /* padding 2 x 22px, borders, 2 x 1.2 x 1.5rem title, 8px, 2 x 1.6 x 0.95rem text */
+}
+.rack--full .unit {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: var(--unit-full-h);
+}
+.rack--full .unit__title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  flex: none;
+  overflow: hidden;
+}
+.rack--full .unit__line {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  flex: none;
+  overflow: hidden;
+}
+
+@media (max-width: 599px) {
+  :root {
+    --ear: 54px;
+  }
+  .unit {
+    padding: 20px 20px 20px calc(var(--ear) + 16px);
+  }
+  .unit__label {
+    font-size: 0.68rem;
+  }
+  .unit__title {
+    font-size: 1.22rem;
+  }
+  .rack--full {
+    --unit-full-h: calc(50px + 5.968rem); /* padding 2 x 20px, borders, 8px, 2 x 1.2 x 1.22rem, 2 x 1.6 x 0.95rem */
+  }
+}
+
+/* Text for screen readers only (the status of a blanking panel). */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --------------------------------------------------------------- console -- */
+/* The console unit on the home page: always black, ice-blue trim, centered across the room
+   container. The intro's lead (before <!--more-->) centered, the rest in a native <details>
+   disclosure at the reading measure, and a hardware-style button to the first post. */
+.console {
+  --ink: #eef3fb;
+  --text: #c4cee0;
+  --muted: #8e9bb5;
+  --accent: #9fc4ff;
+  --screw: #23304a;
+  --screw-ring: #000;
+  padding: 30px clamp(20px, 5vw, 56px) 28px;
+  background-color: var(--term-bg);
+  border: 1px solid var(--term-line);
+  border-top: 3px solid var(--ice);
+  color: var(--text);
+}
+
+.console__lead {
+  max-width: 880px;
+  margin: 0 auto;
+  font-size: 1.06rem;
+  line-height: 1.65;
+  text-align: center;
+  text-wrap: pretty;
+}
+
+.console__more {
+  margin: 20px auto 0;
+  text-align: center;
+}
+.console__summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--term-line);
+  border-radius: 2px;
+  color: var(--ice);
+  font-family: var(--label);
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  list-style: none;
+}
+.console__summary::-webkit-details-marker {
+  display: none;
+}
+.console__summary::before {
+  content: "▸";
+  font-family: var(--mono);
+  transition: transform 0.2s ease;
+}
+.console__more[open] > .console__summary::before {
+  transform: rotate(90deg);
+}
+.console__summary:hover {
+  border-color: var(--ice);
+}
+
+.console__rest {
+  max-width: var(--measure);
+  margin: 18px auto 0;
+  font-size: 1rem;
+  line-height: 1.65;
+  text-align: left;
+}
+
+.console__foot {
+  margin: 24px 0 0;
+  font-family: var(--label);
+  text-align: center;
+}
+
+.console__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border: 1px solid var(--ice);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--ice);
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+.console__cta svg {
+  width: 16px;
+  height: 16px;
+}
+.console__cta:hover {
+  background: var(--ice);
+  color: #05080e;
+}
+
+@media (max-width: 599px) {
+  .console__lead {
+    font-size: 1rem;
+  }
+}
+
+/* ---------------------------------------------------------------- switch -- */
+/* The core switch: a 1U faceplate (no title on it) with RJ45 ports in eights (--ports, inline
+   on the hall): one per server room, then spares closed with a dust cap. Each room port has
+   a link LED above it and a patch cable: it hangs from the plug through a flag label with the
+   room name, then runs to its cable tray (.server-hall: the first half of the ports to the
+   left tray, the others to the right one) and down its own lane.
+   Open rooms: green LED, ice-blue cable, a linked white label. Closed rooms: unlit LED, dark
+   grey cable, a dark label that is no link.
+   Wide screens: the ports in one row across the faceplate, every port (spares too) one width,
+   so the row is centred between the two trays; the cables drop below the labels and turn towards their tray in two
+   staircases (left: port 1 highest; right: the last room highest), so no run crosses another,
+   then down into their lanes. Below 1120px (see the rows media query) the faceplate stands in the middle and every port
+   is a row: the cable leaves towards its tray, left or right, through the label.
+   Geometry: a room port li is the containing block of its cable run (.switch__run's
+   pseudo-elements), so 100% is one port; --i is the port's position (inline). Right tray:
+   lane i's centre is --tray-pad + (i - L - 0.5) * --lane right of the switch's right edge;
+   left tray: --tray-pad + (i - 0.5) * --lane right of the left tray's outer rail. */
+.switch {
+  --face-h: 64px;
+  --cable-h: 30px; /* plug to label */
+  --drop: 14px; /* the last room's run, below the labels */
+  --step: 7px; /* between two runs */
+  --channel: calc(var(--drop) + (var(--rooms) - 1) * var(--step) + 22px); /* runs above the first floor */
+  --face:
+    linear-gradient(var(--frame-line), var(--frame-line)) left top / 100% 1px no-repeat,
+    linear-gradient(var(--frame-line), var(--frame-line)) left 0 top calc(var(--face-h) - 1px) / 100% 1px no-repeat,
+    linear-gradient(to bottom, #0d1526, #04070d) left top / 100% var(--face-h) no-repeat;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  padding-bottom: var(--channel);
+}
+
+.switch__ports {
+  display: grid;
+  grid-template-columns: repeat(var(--ports), minmax(0, 1fr)); /* every port, spares too, one width */
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.switch__port {
+  --cable: var(--ice);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  background: var(--face);
+}
+.switch__port:first-child {
+  background:
+    linear-gradient(var(--frame-line), var(--frame-line)) left top / 1px var(--face-h) no-repeat,
+    var(--face);
+}
+.switch__port:last-child {
+  background:
+    linear-gradient(var(--frame-line), var(--frame-line)) right top / 1px var(--face-h) no-repeat,
+    var(--face);
+}
+.switch__port--up {
+  --cable: var(--ice);
+}
+.switch__port--down {
+  --cable: var(--cable-unlit);
+}
+/* Where the port's lane centre is (from the port's left edge) and how deep its run turns. */
+.switch__port--right {
+  --lane-x: calc((var(--ports) - var(--i) + 1) * 100% + var(--tray-pad) + (var(--i) - var(--left) - 0.5) * var(--lane));
+  --run-y: calc(var(--drop) + (var(--rooms) - var(--i)) * var(--step));
+}
+.switch__port--left {
+  --lane-x: calc(-1 * (var(--i) - 1) * 100% - var(--tray-l-w) + var(--tray-pad) + (var(--i) - 0.5) * var(--lane));
+  --run-y: calc(var(--drop) + (var(--i) - 1) * var(--step));
+}
+
+/* The RJ45 socket, with the plug's boot (in the cable colour) seated in it. */
+.switch__jack {
+  position: relative;
+  flex: none;
+  width: 30px;
+  height: 26px;
+  margin-top: 26px;
+  border: 2px solid #1c2538;
+  border-radius: 2px;
+  background: #000;
+  box-shadow: inset 0 2px 4px #000;
+}
+.switch__jack::after {
+  content: "";
+  position: absolute;
+  inset: 6px 5px 0;
+  border-radius: 2px 2px 0 0;
+  background: var(--cable);
+  opacity: 0.92;
+}
+/* A spare port: a dust cap fills the socket. */
+.switch__jack--capped::after {
+  inset: 3px;
+  border-radius: 2px;
+  background: var(--dust-cap);
+  box-shadow: inset 0 1px 0 rgba(160, 190, 255, 0.1);
+  opacity: 1;
+}
+
+/* The link LED above the port: steady, never animated. */
+.switch__led {
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  margin-left: -3px;
+  border-radius: 50%;
+}
+.switch__port--up .switch__led {
+  background: var(--led);
+  box-shadow: 0 0 8px var(--led-glow), 0 0 2px var(--led);
+}
+.switch__port--down .switch__led {
+  background: var(--port-unlit);
+  box-shadow: none;
+}
+.switch__port--spare .switch__led {
+  background: var(--port-unlit);
+  box-shadow: none;
+}
+
+/* The patch cable from the plug down to the label. */
+.switch__cable {
+  flex: none;
+  width: var(--cw);
+  height: var(--cable-h);
+  margin-top: -2px;
+  background: var(--cable);
+}
+
+/* The flag label: wrapped around the cable, the room name on the flag. A name wider than
+   the port wraps at its spaces only (never hyphenated or broken mid-word); the port then
+   stretches with its row, and every cable run still starts at the bottom of the row. */
+.switch__tag {
+  position: relative;
+  flex: none;
+  max-width: calc(100% - 12px);
+  overflow-wrap: normal; /* body breaks long words; a label never does */
+  word-break: normal;
+  hyphens: manual;
+  margin-top: 6px;
+  padding: 7px 6px 6px;
+  border-radius: 2px;
+  background: #e4ebf7;
+  box-shadow: 0 6px 12px -6px #000;
+  color: #05080e;
+  font-family: var(--label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-decoration: none;
+  text-transform: uppercase;
+  text-wrap: balance;
+  transition: transform 0.2s ease;
+}
+.switch__tag::before {
+  content: "";
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  width: 13px;
+  height: 9px;
+  margin-left: -6.5px;
+  border-radius: 2px 2px 0 0;
+  background: inherit;
+}
+a.switch__tag:hover {
+  color: #05080e;
+  transform: translateY(2px);
+}
+.switch__port--down .switch__tag {
+  background: #1a202b;
+  box-shadow: none;
+  color: var(--muted);
+  cursor: default;
+}
+
+/* The cable below the label (it fills the port's height, so every run starts level), then
+   its run: down to --run-y, right to its lane (::before), and down the lane to the bottom of
+   the switch (::after), where the first floor's stretch of tray takes it on. */
+.switch__run {
+  flex: 1 1 auto;
+  width: var(--cw);
+  min-height: 10px;
+  background: var(--cable);
+}
+.switch__run::before,
+.switch__run::after {
+  content: "";
+  position: absolute;
+  border: 0 solid var(--cable);
+  pointer-events: none;
+}
+.switch__run::before {
+  top: 100%;
+  left: calc(50% - var(--cw) / 2);
+  width: calc(var(--lane-x) - 50% + var(--cw) / 2 - var(--bend));
+  height: var(--run-y);
+  border-bottom-width: var(--cw);
+  border-left-width: var(--cw);
+  border-bottom-left-radius: var(--bend);
+}
+.switch__run::after {
+  top: calc(100% + var(--run-y) - var(--cw));
+  left: calc(var(--lane-x) - var(--bend) - var(--cw) / 2);
+  width: calc(var(--bend) + var(--cw));
+  height: calc(var(--channel) - var(--run-y) + var(--cw));
+  border-top-width: var(--cw);
+  border-right-width: var(--cw);
+  border-top-right-radius: var(--bend);
+}
+/* A left-tray port: the same run, mirrored, to the left. */
+.switch__port--left .switch__run::before {
+  left: calc(var(--lane-x) + var(--bend));
+  width: calc(50% + var(--cw) / 2 - var(--lane-x) - var(--bend));
+  border-right-width: var(--cw);
+  border-left-width: 0;
+  border-bottom-right-radius: var(--bend);
+  border-bottom-left-radius: 0;
+}
+.switch__port--left .switch__run::after {
+  left: calc(var(--lane-x) - var(--cw) / 2);
+  border-right-width: 0;
+  border-left-width: var(--cw);
+  border-top-right-radius: 0;
+  border-top-left-radius: var(--bend);
+}
+
+/* The one-row switch needs every port at least --port-min wide. Media queries cannot read
+   custom properties, so its breakpoint is written out: 8 ports x 125px + both trays (4 x
+   8px padding + 7 rooms x 8px lanes = 88px) + 2 x 16px gutters = 1120px (check.sh recomputes
+   it). Below that, the rows layout. */
+@media (max-width: 1119px) {
+  /* The faceplate stands in the middle of the hall and every port is a row: a left-tray
+     room's cable leaves its socket to the left, through its label, to the left tray; a
+     right-tray room's to the right. All items of a row share one grid row (the cable line
+     runs under the label, like a flag wrapped round it). */
+  .switch {
+    --strip: 60px;
+    --row-h: 52px;
+    --spare-h: 30px;
+    --channel: 24px;
+    --face: linear-gradient(to right, var(--frame-line) 0 1px, #0d1526 1px, #04070d calc(100% - 1px), var(--frame-line) calc(100% - 1px)) center top / var(--strip) 100% no-repeat;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .switch__ports {
+    grid-auto-flow: row;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .switch__port {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) var(--strip) minmax(0, 1fr);
+    grid-template-rows: 100%;
+    align-items: center;
+    height: var(--row-h);
+  }
+  .switch__port > * {
+    grid-row: 1;
+  }
+  .switch__port--spare {
+    height: var(--spare-h);
+  }
+  .switch__port:first-child {
+    background:
+      linear-gradient(var(--frame-line), var(--frame-line)) center top / var(--strip) 1px no-repeat,
+      var(--face);
+  }
+  .switch__port:last-child {
+    background:
+      linear-gradient(var(--frame-line), var(--frame-line)) center bottom / var(--strip) 1px no-repeat,
+      var(--face);
+  }
+  /* The socket turns with the strip, the plug towards the port's tray, above its cable. */
+  .switch__jack {
+    z-index: 1;
+    grid-column: 2;
+    justify-self: center;
+    margin: 0;
+    transform: rotate(-90deg);
+  }
+  .switch__port--left .switch__jack {
+    transform: rotate(90deg);
+  }
+  .switch__port--spare .switch__jack {
+    transform: rotate(90deg) scale(0.8);
+  }
+  .switch__cable {
+    grid-column: 2;
+    justify-self: end;
+    width: 50%;
+    height: var(--cw);
+    margin: 0;
+  }
+  .switch__port--left .switch__cable {
+    justify-self: start;
+  }
+  .switch__tag {
+    grid-column: 3;
+    justify-self: start;
+    max-width: calc(100% - 14px);
+    margin: 0 0 0 14px;
+    padding: 7px 8px 6px;
+    font-size: 0.74rem;
+    text-align: left;
+  }
+  .switch__port--left .switch__tag {
+    grid-column: 1;
+    justify-self: end;
+    margin: 0 14px 0 0;
+    text-align: right;
+  }
+  .switch__tag::before {
+    top: 50%;
+    left: -8px;
+    width: 9px;
+    height: 13px;
+    margin: -6.5px 0 0;
+    border-radius: 2px 0 0 2px;
+  }
+  .switch__port--left .switch__tag::before {
+    right: -8px;
+    left: auto;
+    border-radius: 0 2px 2px 0;
+  }
+  a.switch__tag:hover {
+    transform: translateX(2px);
+  }
+  .switch__port--left a.switch__tag:hover {
+    transform: translateX(-2px);
+  }
+  /* The cable runs on from the label to its tray, then turns down its lane past the rows
+     below to the bottom of the switch. Entering the right tray it passes behind the cables
+     of the rooms above, already in their lanes (z-index falls with --i); in the left tray
+     each cable takes a lane inside the ones above it, so none is crossed. */
+  .switch__run {
+    grid-column: 3;
+    justify-self: stretch;
+    width: auto;
+    height: var(--cw);
+    min-height: 0;
+  }
+  .switch__port--left .switch__run {
+    grid-column: 1;
+  }
+  .switch__port--right .switch__run::before,
+  .switch__port--left .switch__run::before {
+    top: calc(50% - var(--cw) / 2);
+    z-index: calc(100 - var(--i));
+    height: calc((var(--rooms) - var(--i)) * 100% + 50% + var(--cw) / 2 + (var(--ports) - var(--rooms)) * var(--spare-h) + var(--channel));
+  }
+  .switch__port--right .switch__run::before {
+    right: auto;
+    left: 100%;
+    width: calc(var(--tray-pad) + (var(--i) - var(--left) - 0.5) * var(--lane) + var(--cw) / 2);
+    border-width: var(--cw) var(--cw) 0 0;
+    border-radius: 0 var(--bend) 0 0;
+  }
+  .switch__port--left .switch__run::before {
+    right: 100%;
+    left: auto;
+    width: calc(var(--tray-l-w) - var(--tray-pad) - (var(--i) - 0.5) * var(--lane) + var(--cw) / 2);
+    border-width: var(--cw) 0 0 var(--cw);
+    border-radius: var(--bend) 0 0 0;
+  }
+  .switch__run::after {
+    content: none;
+  }
+}
+
+/* Phones: a narrower faceplate strip and smaller labels, so the longest single word
+   ("Cybersecurity") fits one side of the strip at 375px without hyphenation. */
+@media (max-width: 599px) {
+  .switch {
+    --strip: 52px;
+  }
+  .switch__tag {
+    max-width: calc(100% - 10px);
+    margin: 0 0 0 10px;
+    padding: 6px 6px 5px;
+    font-size: 0.7rem;
+    letter-spacing: 0.04em;
+  }
+  .switch__port--left .switch__tag {
+    margin: 0 10px 0 0;
+  }
+}
+
+/* --------------------------------------------------------------- article -- */
+.article {
+  padding: clamp(28px, 6vw, 60px);
+}
+
+.article__meta {
+  margin: 0 0 26px;
+  color: var(--muted);
+  font-family: var(--label);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.article__meta a {
+  color: var(--muted);
+}
+.article__meta .sep {
+  margin: 0 0.6em;
+  color: var(--accent);
+}
+
+/* The rack box as a patch panel: one port per unit, this one lit, blanks with a red port. */
+.rack-box {
+  margin: 0 0 32px;
+  padding: 16px 20px 14px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--inset);
+  font-family: var(--serif);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+.rack-box__head {
+  margin: 0 0 10px;
+  color: var(--accent);
+  font-family: var(--label);
+  font-size: 0.74rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.rack-box__head .sep {
+  margin: 0 0.6em;
+  color: var(--muted);
+}
+.rack-box__head a {
+  color: var(--accent);
+  text-decoration-color: currentColor;
+}
+.rack-box__head a:hover {
+  color: var(--ink);
+}
+.rack-box__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rack-box__item {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  align-items: baseline;
+  margin: 6px 0;
+}
+/* Port number from markup (not a counter). */
+.rack-box__port {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.78rem;
+}
+.rack-box__item a {
+  color: var(--text);
+  text-decoration: none;
+}
+.rack-box__item a:hover {
+  color: var(--accent);
+}
+.rack-box__item.is-current {
+  color: var(--ink);
+}
+.rack-box__item.is-current .rack-box__port {
+  color: var(--led);
+  text-shadow: 0 0 8px var(--led-glow);
+}
+.rack-box__item.is-blank {
+  color: var(--muted);
+}
+.rack-box__item.is-blank .rack-box__port {
+  color: var(--led-blank);
+  text-shadow: 0 0 8px var(--led-blank-glow);
+}
+
+.article__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 40px 0 0;
+  padding: 24px 0 0;
+  border-top: 1px dashed var(--border);
+  list-style: none;
+  font-family: var(--label);
+  font-size: 0.78rem;
+}
+/* Tags as cable labels. */
+.article__tags a {
+  display: inline-block;
+  padding: 3px 9px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--inset);
+  color: var(--muted);
+  text-decoration: none;
+}
+.article__tags a:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* -------------------------------------------------------------- post nav -- */
+.post-nav {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.post-nav__link {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 22px 28px;
+  color: var(--ink);
+  text-decoration: none;
+}
+.post-nav__link:hover {
+  color: var(--ink);
+  border-color: var(--accent);
+}
+.post-nav__link--next {
+  grid-column: 2;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.post-nav__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--accent);
+  font-family: var(--label);
+  font-size: 0.74rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.post-nav__label svg {
+  width: 16px;
+  height: 16px;
+}
+
+.post-nav__title {
+  font-family: var(--display);
+  font-size: 1.08rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+@media (max-width: 599px) {
+  .post-nav {
+    grid-template-columns: 1fr;
+  }
+  .post-nav__link--next {
+    grid-column: auto;
+  }
+}
+
+/* ----------------------------------------------------------------- prose -- */
+.prose > :first-child {
+  margin-top: 0;
+}
+.prose > :last-child {
+  margin-bottom: 0;
+}
+
+.prose p,
+.prose ul,
+.prose ol {
+  margin: 0 0 1.2em;
+}
+
+.prose ul,
+.prose ol {
+  padding-left: 1.3em;
+}
+.prose li {
+  margin: 0.35em 0;
+}
+.prose ul > li::marker {
+  content: "▪  ";
+  color: var(--accent);
+}
+.prose ol > li::marker {
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 0.85em;
+}
+
+.prose h2,
+.prose h3,
+.prose h4 {
+  color: var(--ink);
+  font-family: var(--display);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.005em;
+  scroll-margin-top: 16px; /* added to html's scroll-padding-top (the header) */
+}
+.prose h2 {
+  margin: 2.1em 0 0.75em;
+  font-size: 1.6rem;
+}
+.prose h2::before {
+  content: "//";
+  margin-right: 0.45em;
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 0.8em;
+  font-weight: 400;
+}
+.prose h3 {
+  margin: 1.8em 0 0.6em;
+  font-size: 1.25rem;
+}
+.prose h4 {
+  margin: 1.5em 0 0.5em;
+  font-size: 1.05rem;
+}
+
+.prose strong {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.prose hr {
+  margin: 2.6em 0;
+  height: 12px;
+  border: 0;
+  background: radial-gradient(circle, var(--muted) 1.5px, transparent 2px) center / 18px 12px repeat-x;
+  opacity: 0.6;
+}
+
+.prose blockquote {
+  margin: 1.7em 0;
+  padding: 0.2em 0 0.2em 1.2em;
+  border-left: 3px solid var(--accent);
+  color: var(--muted);
+  font-style: italic;
+}
+.prose blockquote > :last-child {
+  margin-bottom: 0;
+}
+
+/* Photos are mounted in a frame with a mono caption, like a labelled exhibit. */
+.prose figure {
+  margin: 2.2em 0;
+}
+.prose figure img {
+  display: block;
+  margin: 0 auto;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--inset);
+}
+.prose figcaption {
+  margin-top: 10px;
+  color: var(--muted);
+  font-family: var(--label);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  text-align: center;
+}
+.prose figcaption::before {
+  content: "fig. ";
+  color: var(--accent);
+}
+.prose figcaption p {
+  display: inline;
+  margin: 0;
+}
+
+.prose img {
+  border-radius: 2px;
+}
+
+.prose code,
+.prose kbd,
+.prose samp {
+  font-family: var(--mono);
+  font-size: 0.84em;
+}
+.prose :not(pre) > code {
+  padding: 0.12em 0.4em;
+  border-radius: 2px;
+  background: var(--code-inline-bg);
+  color: var(--ink);
+}
+
+/* Code blocks are a terminal. */
+.prose pre {
+  margin: 1.6em 0;
+  padding: 16px 20px;
+  overflow-x: auto;
+  border: 1px solid var(--term-line);
+  border-left: 3px solid var(--prompt);
+  border-radius: 2px;
+  background: var(--term-bg);
+  color: var(--term-text);
+  font-size: 0.88rem;
+  line-height: 1.6;
+  tab-size: 2;
+}
+.prose pre code {
+  padding: 0;
+  background: none;
+  color: inherit;
+  font-size: inherit;
+}
+.prose .highlight {
+  margin: 1.6em 0;
+}
+.prose .highlight pre {
+  margin: 0;
+}
+
+.prose table {
+  display: block;
+  max-width: 100%;
+  margin: 1.6em 0;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-family: var(--mono);
+  font-size: 0.85rem;
+}
+.prose th,
+.prose td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+.prose th {
+  color: var(--accent);
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ----------------------------------------------------------------- intro -- */
+.intro {
+  margin-bottom: 28px;
+  padding: clamp(28px, 6vw, 52px);
+}
+
+.term-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.term-card {
+  padding: 24px 28px;
+}
+.term-card:hover {
+  border-color: var(--accent);
+}
+.term-card:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.term-card__title {
+  margin: 0 0 6px;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+.term-card__title a {
+  color: var(--ink);
+  text-decoration: none;
+}
+.term-card__title a:focus-visible {
+  outline: none;
+}
+.term-card__title a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+.term-card__count {
+  margin: 0;
+  color: var(--muted);
+  font-family: var(--label);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ---------------------------------------------------------------- footer -- */
+.site-footer {
+  margin-top: auto;
+  border-top: 1px solid var(--frame-line);
+  background: var(--frame);
+  color: var(--band-muted);
+  font-family: var(--label);
+  font-size: 0.8rem;
+}
+
+/* Same container as .site-header__inner, so the copyright lines up under the wordmark. */
+.site-footer__inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 22px var(--gutter) 30px;
+}
+
+.site-footer__copy {
+  margin: 0;
+}
+
+/* ------------------------------------------------------- view transitions -- */
+/* Same-site navigation cross-fades the page (briefly) while the header stays put. */
+@view-transition {
+  navigation: auto;
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 180ms;
+}
+/* Identical in both pages: show only the new header, with no animation. */
+::view-transition-old(site-header) {
+  display: none;
+}
+::view-transition-new(site-header),
+::view-transition-group(site-header) {
+  animation: none;
+}
+
+/* ---------------------------------------------------------- preferences -- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+  .unit--live:hover {
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  @view-transition {
+    navigation: none;
+  }
+}
+

@@ -1,0 +1,57 @@
+{{- /*
+A rack: the top cap with its label plate (rack title and optional `plate` subtitle), the
+rails, every unit in order (rack-units.html), and the vented plinth.
+Every rack has the same standard size (main.css "rack"): a fixed-height label plate (the name
+clamped to 2 lines), fixed-height units.
+Compact (home floors and room pages): the rack title links to the rack page when the rack is
+open (is-open.html), units show titles only (clamped to 2 lines; the link keeps the full
+title). Every unit is shown: at least 3 (rack-units.html pads), a rack with more grows by
+whole units; the bay never scrolls.
+Full (rack page, rack--full): the rack is the page's subject (the band holds its title), units
+are full cards with date and opening text, all shown, each the same fixed height.
+Off (a closed room's floor on the home page): a powered-off empty rack, no name on its plate,
+$visible (3) blanking panels with unlit LEDs; decoration, hidden from screen readers (the floor
+heading says the room is closed).
+@context {dict} "rack" (the rack section), "compact" (bool), "level" (2 or 3, default 3: the
+  heading level of a compact rack's name); or "off" (true) alone.
+@example: {{ partial "rack.html" (dict "rack" . "compact" true) }}
+*/ -}}
+{{- $visible := 3 }}
+{{- if .off }}
+<section class="rack rack--compact rack--off" aria-hidden="true">
+  <div class="rack__cap"></div>
+  <ol class="rack__bay rack__units">
+    {{- range seq $visible }}
+      {{- partial "unit.html" (dict "unit" (dict "unit" . "title" "" "page" false) "compact" true) }}
+    {{- end }}
+  </ol>
+</section>
+{{- else }}
+{{- $rack := .rack }}
+{{- $compact := .compact | default false }}
+{{- $units := partialCached "rack-units.html" $rack $rack.Path }}
+{{- $id := printf "rack-%s" (replace (strings.TrimPrefix "/" $rack.Path) "/" "-") }}
+<section class="rack {{ if $compact }}rack--compact{{ else }}rack--full{{ end }}" aria-labelledby="{{ $id }}">
+  <div class="rack__cap">
+    {{- if $compact }}
+    {{- $name := $rack.LinkTitle }}
+    {{- $open := partialCached "is-open.html" $rack $rack.Path }}
+    {{- if eq (.level | default 3) 2 }}
+    <h2 class="rack__name" id="{{ $id }}">{{ if $open }}<a href="{{ $rack.RelPermalink }}">{{ $name }}</a>{{ else }}{{ $name }}{{ end }}</h2>
+    {{- else }}
+    <h3 class="rack__name" id="{{ $id }}">{{ if $open }}<a href="{{ $rack.RelPermalink }}">{{ $name }}</a>{{ else }}{{ $name }}{{ end }}</h3>
+    {{- end }}
+    {{- else }}
+    <p class="rack__name" id="{{ $id }}">{{ $rack.LinkTitle }}</p>
+    {{- end }}
+    {{- with $rack.Params.plate }}
+    <p class="rack__plate">{{ . }}</p>
+    {{- end }}
+  </div>
+  <ol class="rack__bay rack__units">
+    {{- range $units }}
+      {{- partial "unit.html" (dict "unit" . "compact" $compact) }}
+    {{- end }}
+  </ol>
+</section>
+{{- end }}

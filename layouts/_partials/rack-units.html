@@ -1,0 +1,63 @@
+{{- /*
+The units of a rack, in order: position 1 to the last used one, padded to at least $min.
+A position holds the rack's post with that `unit` (published, or a draft in a build with
+drafts); otherwise the rack's `planned` entry for it (a blanking panel with its planned
+title); otherwise an untitled blanking panel. A post wins over a planned entry.
+Errors (the build fails): a post without `unit`, a `unit` that is not an integer >= 1,
+two posts or two planned entries at the same unit. A non-draft post at a planned unit
+is a warning: the planned entry should have been deleted when the post was published.
+Call it through partialCached keyed by the rack, so each rack is merged once per build.
+@context {page} The rack (a section inside a server room).
+@returns {slice} dicts "unit" (int), "title" (string, "" for an untitled blank), "page"
+  (the post, or false for a blanking panel).
+@example: {{ $units := partialCached "rack-units.html" $rack $rack.Path }}
+*/ -}}
+{{- $min := 3 }}
+{{- $rack := . }}
+{{- $posts := dict }}
+{{- $last := $min }}
+{{- range $rack.RegularPages }}
+  {{- $u := .Params.unit }}
+  {{- if eq $u nil }}
+    {{- errorf "%s: the post has no `unit` (its position in the rack, 1, 2, 3, ...)" .File.Path }}
+  {{- else if not (and (in (slice "int" "int64" "uint64") (printf "%T" $u)) (ge (int $u) 1)) }}
+    {{- errorf "%s: `unit` must be an integer >= 1, not %v" .File.Path $u }}
+  {{- else }}
+    {{- $page := . }}
+    {{- $key := string $u }}
+    {{- with index $posts $key }}
+      {{- errorf "%s and %s: two posts with unit %d in rack %q" .File.Path $page.File.Path (int $u) $rack.Title }}
+    {{- end }}
+    {{- $posts = merge $posts (dict $key $page) }}
+    {{- if gt (int $u) $last }}{{ $last = int $u }}{{ end }}
+  {{- end }}
+{{- end }}
+{{- $planned := dict }}
+{{- range $rack.Params.planned }}
+  {{- $u := .unit }}
+  {{- if not (and $u (in (slice "int" "int64" "uint64") (printf "%T" $u)) (ge (int $u) 1)) }}
+    {{- errorf "%s: every `planned` entry needs a `unit` integer >= 1 (found %v)" $rack.File.Path $u }}
+    {{- $u = 1 }}
+  {{- end }}
+  {{- $key := string $u }}
+  {{- if isset $planned $key }}
+    {{- errorf "%s: two `planned` entries with unit %d" $rack.File.Path (int $u) }}
+  {{- end }}
+  {{- $planned = merge $planned (dict $key (string (.title | default ""))) }}
+  {{- with index $posts $key }}
+    {{- if not .Draft }}
+      {{- warnf "%s: unit %d is published (%s) and still listed under `planned`: delete the planned entry" $rack.File.Path (int $u) .File.Path }}
+    {{- end }}
+  {{- end }}
+  {{- if gt (int $u) $last }}{{ $last = int $u }}{{ end }}
+{{- end }}
+{{- $units := slice }}
+{{- range seq $last }}
+  {{- $key := string . }}
+  {{- with index $posts $key }}
+    {{- $units = $units | append (dict "unit" (int $key) "title" .LinkTitle "page" .) }}
+  {{- else }}
+    {{- $units = $units | append (dict "unit" (int $key) "title" (index $planned $key | default "") "page" false) }}
+  {{- end }}
+{{- end }}
+{{- return $units }}

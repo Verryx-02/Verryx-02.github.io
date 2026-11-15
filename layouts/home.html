@@ -1,0 +1,52 @@
+{{ define "main" }}
+{{- /* The home page (docs/adr/0003 and 0004): the console (no visible title, named "Start here"
+       for screen readers; the intro's lead,
+       the rest in a disclosure, "Start reading"), then the server hall: the core switch with
+       one port per server room (and capped spares up to a multiple of 8), and the server
+       view, a floor per room, open or closed. Two cable trays run down the sides of the hall:
+       the rooms on the first half of the switch ports (--left, at most ports / 2) are cabled to
+       the left one, the others to the right one; each cable drops into its tray and leaves it
+       at its own room's floor, into the patch panel on that side of the room name. The hall's
+       inline --rooms, --ports and --left drive the cable geometry in main.css ("switch" and
+       "server room" sections). */}}
+{{- $rooms := .Sections.ByWeight }}
+{{- $open := slice }}
+{{- range $rooms }}{{ if partialCached "is-open.html" . .Path }}{{ $open = $open | append . }}{{ end }}{{ end }}
+{{- $ports := mul (div (add (len $rooms) 7) 8) 8 }}
+{{- $left := cond (lt (len $rooms) (div $ports 2)) (len $rooms) (div $ports 2) }}
+{{- /* "Start reading": the first published unit of the first open rack of the first open room. */}}
+{{- $first := false }}
+{{- range $open }}
+  {{- range .Sections.ByWeight }}
+    {{- if not $first }}
+      {{- range partialCached "rack-units.html" . .Path }}
+        {{- if and .page (not $first) }}{{ $first = .page }}{{ end }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+<div class="container container--room">
+  <section class="card console" aria-label="Start here">
+    {{- with .Summary }}
+    <div class="console__lead prose">{{ . }}</div>
+    {{- end }}
+    {{- with .ContentWithoutSummary }}
+    <details class="console__more">
+      <summary class="console__summary">More about this blog</summary>
+      <div class="console__rest prose">{{ . }}</div>
+    </details>
+    {{- end }}
+    {{- with $first }}
+    <p class="console__foot">
+      <a class="console__cta" href="{{ .RelPermalink }}">Start reading {{ partial "icon.html" "arrow-right" }}</a>
+    </p>
+    {{- end }}
+  </section>
+  <div class="server-hall" style="--rooms: {{ len $rooms }}; --ports: {{ $ports }}; --left: {{ $left }}">
+    {{- partial "switch.html" (dict "rooms" $rooms "ports" $ports "left" $left) }}
+    <div class="server-view">
+      {{- range $k, $room := $rooms }}{{ partial "floor.html" (dict "room" $room "heading" true "rooms" $rooms "k" $k "left" $left) }}{{ end }}
+    </div>
+  </div>
+</div>
+{{ end }}

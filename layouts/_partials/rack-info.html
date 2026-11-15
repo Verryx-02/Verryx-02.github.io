@@ -1,0 +1,32 @@
+{{- /*
+Where a post sits: its rack (the post's section) in its room, and its place in the rack.
+A post must sit in a rack of a room, at content/<room>/<rack>/<post>/index.md with an
+_index.md in the room and rack folders; a post directly in a room, or in a folder without
+_index.md, fails the build naming the file. Call it through partialCached keyed by the
+post's path, so the check runs once per post.
+@context {page} The post.
+@returns {dict} "rack" (the rack section), "room" (the room section, or false when the post is
+  misplaced), "units" (rack-units.html), "number" (the post's unit), "total" (positions
+  shown, blanks and padding included), "prev" and "next" (the nearest published post
+  before/after it in the same rack, skipping blanking panels, or false).
+@example: {{ with partialCached "rack-info.html" . .Path }}U{{ printf "%02d" .number }} of {{ .total }}{{ end }}
+*/ -}}
+{{- $page := . }}
+{{- $rack := $page.CurrentSection }}
+{{- $room := false }}
+{{- if and (not $rack.IsHome) $rack.Parent (not $rack.Parent.IsHome) $rack.Parent.Parent $rack.Parent.Parent.IsHome }}
+  {{- $room = $rack.Parent }}
+{{- else }}
+  {{- errorf "%s: a post must sit in a rack of a server room, at content/<room>/<rack>/<post>/index.md, with an _index.md in the room and the rack folder" $page.File.Path }}
+{{- end }}
+{{- $units := partialCached "rack-units.html" $rack $rack.Path }}
+{{- $number := int ($page.Params.unit | default 0) }}
+{{- $prev := false }}
+{{- $next := false }}
+{{- range $units }}
+  {{- if .page }}
+    {{- if lt .unit $number }}{{ $prev = .page }}{{ end }}
+    {{- if and (gt .unit $number) (not $next) }}{{ $next = .page }}{{ end }}
+  {{- end }}
+{{- end }}
+{{- return dict "rack" $rack "room" $room "units" $units "number" $number "total" (len $units) "prev" $prev "next" $next }}

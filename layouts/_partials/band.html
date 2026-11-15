@@ -1,0 +1,30 @@
+{{- /*
+The dark band under the navigation.
+@context {dict} "title" (string, required), "tag" (h1 or p, default h1), "kicker" (string,
+  optional), "crumbs" (optional: a slice of sections shown before the kicker, each linked to
+  its page when open, see is-open.html), "plate" (string, optional subtitle under the title).
+@example: {{ partial "band.html" (dict "title" .Title "crumbs" (slice .Parent) "kicker" "Rack") }}
+*/ -}}
+{{- $tag := .tag | default "h1" }}
+{{- $crumbs := .crumbs }}
+<div class="band">
+  <div class="band__inner">
+    {{- if or $crumbs .kicker }}
+    <p class="band__kicker">
+      {{- range $i, $p := $crumbs }}
+        {{- if $i }}<span class="sep" aria-hidden="true">·</span>{{ end }}
+        {{- if partialCached "is-open.html" $p $p.Path }}<a href="{{ $p.RelPermalink }}">{{ $p.LinkTitle }}</a>{{ else }}{{ $p.LinkTitle }}{{ end }}
+      {{- end }}
+      {{- with .kicker }}{{ if $crumbs }}<span class="sep" aria-hidden="true">·</span>{{ end }}{{ . }}{{ end -}}
+    </p>
+    {{- end }}
+    {{- if eq $tag "p" }}
+    <p class="band__title">{{ .title }}</p>
+    {{- else }}
+    <h1 class="band__title">{{ .title }}</h1>
+    {{- end }}
+    {{- with .plate }}
+    <p class="band__plate">{{ . }}</p>
+    {{- end }}
+  </div>
+</div>

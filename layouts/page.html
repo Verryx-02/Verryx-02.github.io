@@ -1,0 +1,84 @@
+{{ define "band" }}
+  {{- /* The breadcrumb "<Room> · <Rack>"; rack-info.html fails the build for a misplaced post. */}}
+  {{- $info := partialCached "rack-info.html" . .Path }}
+  {{- $crumbs := slice }}
+  {{- with $info.room }}{{ $crumbs = slice . $info.rack }}{{ end }}
+  {{- partial "band.html" (dict "title" .Title "crumbs" $crumbs) }}
+{{ end }}
+
+{{ define "main" }}
+{{- /* Every regular page is a post in a rack (scripts/check.sh asserts it). */}}
+{{- $info := partialCached "rack-info.html" . .Path }}
+{{- $rack := $info.rack }}
+{{- $current := . }}
+<div class="container">
+  <div class="rack rack--page">
+    <div class="rack__cap">
+      <p class="rack__name">{{ $rack.LinkTitle }}</p>
+      {{- with $rack.Params.plate }}
+      <p class="rack__plate">{{ . }}</p>
+      {{- end }}
+    </div>
+    <div class="rack__bay">
+      <article class="card article">
+        <p class="article__meta">
+          <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
+          <span class="sep" aria-hidden="true">·</span>
+          <span>{{ .ReadingTime }} min read</span>
+        </p>
+
+        {{- /* The rack as a patch panel: one port per unit, this one lit, blanks dark red. */}}
+        <nav class="rack-box" aria-label="Rack: {{ $rack.LinkTitle }}">
+          <p class="rack-box__head">U{{ printf "%02d" $info.number }} of {{ $info.total }}<span class="sep" aria-hidden="true">·</span><a href="{{ $rack.RelPermalink }}">{{ $rack.LinkTitle }}</a></p>
+          <ol class="rack-box__list">
+            {{- range $info.units }}
+            {{- $port := printf "%02d" .unit }}
+            {{- with .page }}
+            {{- if .Eq $current }}
+            <li class="rack-box__item is-current" aria-current="page"><span class="rack-box__port" aria-hidden="true">{{ $port }}</span><span>{{ .LinkTitle }}</span></li>
+            {{- else }}
+            <li class="rack-box__item"><span class="rack-box__port" aria-hidden="true">{{ $port }}</span><a href="{{ .RelPermalink }}">{{ .LinkTitle }}</a></li>
+            {{- end }}
+            {{- else }}
+            <li class="rack-box__item is-blank"><span class="rack-box__port" aria-hidden="true">{{ $port }}</span>
+              {{- with .title }}<span aria-hidden="true">{{ . }}</span><span class="visually-hidden">Planned: {{ . }}</span>{{ else }}<span class="visually-hidden">Empty slot</span>{{ end }}</li>
+            {{- end }}
+            {{- end }}
+          </ol>
+        </nav>
+
+        <div class="prose article__body">
+          {{ .Content }}
+        </div>
+
+        {{- with .GetTerms "tags" }}
+        <ul class="article__tags" aria-label="Tags">
+          {{- range . }}
+          <li><a href="{{ .RelPermalink }}">#{{ .Data.Term }}</a></li>
+          {{- end }}
+        </ul>
+        {{- end }}
+      </article>
+
+      {{- /* Previous/next: the nearest published units of the same rack, skipping blanks. */}}
+      {{- if or $info.prev $info.next }}
+      <nav class="post-nav" aria-label="More in this rack">
+        {{- with $info.prev }}
+        <a class="card post-nav__link post-nav__link--prev" href="{{ .RelPermalink }}" rel="prev">
+          <span class="post-nav__label">{{ partial "icon.html" "arrow-left" }} Previous unit</span>
+          <span class="post-nav__title">{{ .LinkTitle }}</span>
+        </a>
+        {{- end }}
+        {{- with $info.next }}
+        <a class="card post-nav__link post-nav__link--next" href="{{ .RelPermalink }}" rel="next">
+          <span class="post-nav__label">Next unit {{ partial "icon.html" "arrow-right" }}</span>
+          <span class="post-nav__title">{{ .LinkTitle }}</span>
+        </a>
+        {{- end }}
+      </nav>
+      {{- end }}
+      {{- partial "comments.html" . }}
+    </div>
+  </div>
+</div>
+{{ end }}

@@ -1,0 +1,107 @@
+/* giscus custom theme for the comments panel under each post (data-theme in
+   layouts/_partials/comments.html). giscus loads it into its own iframe from the published
+   site, so it cannot use the site's CSS variables: the values below are copied from the
+   tokens in assets/css/main.css (panel, page, ink, text, muted, border, ice-blue accent,
+   green LED) and assets/css/syntax.css (code colours). Dark only, like the site.
+   Variable names follow giscus's built-in themes (GitHub Primer primitives, MIT License,
+   Copyright (c) 2018 GitHub Inc.). */
+
+/* giscus sets its theme variables on main; :root covers older giscus versions. */
+:root,
+main {
+  color-scheme: dark;
+
+  /* Code blocks in comments: the palette of syntax.css. */
+  --color-prettylights-syntax-comment: #6f7d98;
+  --color-prettylights-syntax-constant: #d6e4ff;
+  --color-prettylights-syntax-entity: #e6dccb;
+  --color-prettylights-syntax-storage-modifier-import: #d7deea;
+  --color-prettylights-syntax-entity-tag: #9fc4ff;
+  --color-prettylights-syntax-keyword: #9fc4ff;
+  --color-prettylights-syntax-string: #8fe3a8;
+  --color-prettylights-syntax-variable: #d6e4ff;
+  --color-prettylights-syntax-brackethighlighter-unmatched: #ff8f8f;
+  --color-prettylights-syntax-invalid-illegal-text: #eef3fb;
+  --color-prettylights-syntax-invalid-illegal-bg: #5c1a1f;
+  --color-prettylights-syntax-carriage-return-text: #eef3fb;
+  --color-prettylights-syntax-carriage-return-bg: #5c1a1f;
+  --color-prettylights-syntax-string-regexp: #8fe3a8;
+  --color-prettylights-syntax-markup-list: #b8c7e0;
+  --color-prettylights-syntax-markup-heading: #9fc4ff;
+  --color-prettylights-syntax-markup-italic: #d7deea;
+  --color-prettylights-syntax-markup-bold: #eef3fb;
+  --color-prettylights-syntax-markup-deleted-text: #ff8f8f;
+  --color-prettylights-syntax-markup-deleted-bg: #2a1014;
+  --color-prettylights-syntax-markup-inserted-text: #8fe3a8;
+  --color-prettylights-syntax-markup-inserted-bg: #0c2418;
+  --color-prettylights-syntax-markup-changed-text: #d6e4ff;
+  --color-prettylights-syntax-markup-changed-bg: #13213b;
+  --color-prettylights-syntax-markup-ignored-text: #d7deea;
+  --color-prettylights-syntax-markup-ignored-bg: #1d2b47;
+  --color-prettylights-syntax-meta-diff-range: #b8c7e0;
+  --color-prettylights-syntax-brackethighlighter-angle: #8391ab;
+  --color-prettylights-syntax-sublimelinter-gutter-mark: #2b3a57;
+  --color-prettylights-syntax-constant-other-reference-link: #8fe3a8;
+
+  /* Buttons: dark panel buttons; the primary one is ice blue with dark text. */
+  --color-btn-text: #c4cee0;
+  --color-btn-bg: #081020;
+  --color-btn-border: rgba(150, 175, 220, 0.13);
+  --color-btn-shadow: 0 0 transparent;
+  --color-btn-inset-shadow: 0 0 transparent;
+  --color-btn-hover-bg: #13213b;
+  --color-btn-hover-border: rgba(150, 175, 220, 0.3);
+  --color-btn-active-bg: #1d2b47;
+  --color-btn-active-border: rgba(150, 175, 220, 0.3);
+  --color-btn-selected-bg: #13213b;
+  --color-btn-primary-text: #05080e;
+  --color-btn-primary-bg: #9fc4ff;
+  --color-btn-primary-border: rgba(159, 196, 255, 0.4);
+  --color-btn-primary-shadow: 0 0 transparent;
+  --color-btn-primary-inset-shadow: 0 0 transparent;
+  --color-btn-primary-hover-bg: #b8d4ff;
+  --color-btn-primary-hover-border: rgba(159, 196, 255, 0.6);
+  --color-btn-primary-selected-bg: #9fc4ff;
+  --color-btn-primary-selected-shadow: 0 0 transparent;
+  --color-btn-primary-disabled-text: rgba(5, 8, 14, 0.6);
+  --color-btn-primary-disabled-bg: rgba(159, 196, 255, 0.4);
+  --color-btn-primary-disabled-border: rgba(159, 196, 255, 0.2);
+  --color-action-list-item-default-hover-bg: rgba(159, 196, 255, 0.08);
+  --color-segmented-control-bg: rgba(150, 175, 220, 0.08);
+  --color-segmented-control-button-bg: #0d1628;
+  --color-segmented-control-button-selected-border: rgba(150, 175, 220, 0.3);
+
+  /* Text, surfaces and borders: main.css --text, --muted, --panel, --inset, --bg, --border. */
+  --color-fg-default: #c4cee0;
+  --color-fg-muted: #8391ab;
+  --color-fg-subtle: #5d6b86;
+  --color-canvas-default: #0d1628;
+  --color-canvas-overlay: #0d1628;
+  --color-canvas-inset: #04060a;
+  --color-canvas-subtle: #081020;
+  --color-border-default: rgba(150, 175, 220, 0.13);
+  --color-border-muted: rgba(150, 175, 220, 0.08);
+  --color-neutral-muted: rgba(150, 175, 220, 0.11);
+
+  /* Accent: ice blue (main.css --accent, --accent-soft). */
+  --color-accent-fg: #9fc4ff;
+  --color-accent-emphasis: #5b8fe0;
+  --color-accent-muted: rgba(159, 196, 255, 0.4);
+  --color-accent-subtle: rgba(159, 196, 255, 0.14);
+
+  /* States: success is the LED green; attention stays in the cool palette (no amber). */
+  --color-success-fg: #3ee08a;
+  --color-attention-fg: #d6e4ff;
+  --color-attention-muted: rgba(214, 228, 255, 0.4);
+  --color-attention-subtle: rgba(214, 228, 255, 0.12);
+  --color-danger-fg: #ff8f8f;
+  --color-danger-muted: rgba(255, 143, 143, 0.4);
+  --color-danger-subtle: rgba(255, 143, 143, 0.1);
+  --color-primer-shadow-inset: 0 0 transparent;
+  --color-scale-gray-7: #13213b;
+  --color-scale-blue-8: #1d2b47;
+
+  /* Reaction buttons (giscus extension). */
+  --color-social-reaction-bg-hover: var(--color-scale-gray-7);
+  --color-social-reaction-bg-reacted-hover: var(--color-scale-blue-8);
+}

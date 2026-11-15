@@ -1,0 +1,8 @@
+{{- $start := site.Params.startYear | default now.Year }}
+{{- $years := string $start }}
+{{- if gt now.Year $start }}{{ $years = printf "%d–%d" $start now.Year }}{{ end }}
+<footer class="site-footer">
+  <div class="site-footer__inner">
+    <p class="site-footer__copy">© {{ $years }} {{ site.Params.author }}</p>
+  </div>
+</footer>

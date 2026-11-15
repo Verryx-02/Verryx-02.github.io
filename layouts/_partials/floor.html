@@ -1,0 +1,68 @@
+{{- /*
+A server room's floor: its racks in miniature (rack.html compact), every rack of the room in
+weight order, empty ones included; a rack name links to its rack page only when the rack is
+open. The room page shows the racks alone (its band holds the name).
+With "heading" (the home server view, one floor per room, open or closed) the floor opens
+with a heading: the room name (linked to the room page when open), its plate, and a 1U patch
+panel whose RJ45 port takes the room's cable from the core switch, its link LED lit like the
+switch port. Beside the floor run its stretches of the two cable trays: each carries its cables
+of this room and of every room after it ("rooms" from index "k" on; the first "left" rooms are
+the left tray's, the others the right's), in lane order. This room's cable turns out of its
+tray into the patch panel on that side of the heading (floor--left: at its left, before the
+name; floor--right: after the name), the others pass down. A closed room's floor names the room
+unlinked ("closed, no posts yet" for screen readers) above one powered-off rack (rack.html
+"off": no name, blanks with unlit LEDs, aria-hidden). Patch panel, cable and tray are
+decoration (aria-hidden).
+@context {dict} "room" (the room section), "heading" (bool); with "heading": "rooms"
+  (page.Pages, every room in weight order) and "k" (int, this room's index in "rooms", from 0) and "left" (int,
+  how many rooms, from the first, are cabled to the left tray).
+@example: {{ partial "floor.html" (dict "room" . "heading" true "rooms" $rooms "k" 0 "left" 4) }}
+*/ -}}
+{{- $room := .room }}
+{{- $racks := $room.Sections.ByWeight }}
+{{- if .heading }}
+{{- $id := printf "floor-%s" (path.Base $room.RelPermalink) }}
+{{- $open := partialCached "is-open.html" $room $room.Path }}
+{{- $state := cond $open "up" "down" }}
+{{- $side := cond (lt .k .left) "left" "right" }}
+<section class="floor floor--{{ $state }} floor--{{ $side }}" aria-labelledby="{{ $id }}">
+  <div class="floor__head">
+    <h2 class="floor__name" id="{{ $id }}">
+      {{- if $open }}<a href="{{ $room.RelPermalink }}">{{ $room.LinkTitle }}</a>{{ else }}{{ $room.LinkTitle }} <span class="visually-hidden">(closed, no posts yet)</span>{{ end -}}
+    </h2>
+    {{- with $room.Params.plate }}
+    <p class="floor__plate">{{ . }}</p>
+    {{- end }}
+    <span class="patch patch--{{ $state }}" aria-hidden="true"><span class="patch__led"></span><span class="patch__jack"></span></span>
+    <span class="floor__cable" aria-hidden="true"></span>
+  </div>
+  {{- if $open }}
+  {{- with $racks }}
+  <div class="floor__racks">
+    {{- range . }}{{ partial "rack.html" (dict "rack" . "compact" true) }}{{ end }}
+  </div>
+  {{- end }}
+  {{- else }}
+  <div class="floor__racks">
+    {{- partial "rack.html" (dict "off" true) }}
+  </div>
+  {{- end }}
+  <div class="tray tray--left" aria-hidden="true">
+    {{- range $j, $r := after .k (first .left .rooms) }}
+    <span class="tray__cable tray__cable--{{ if partialCached "is-open.html" $r $r.Path }}up{{ else }}down{{ end }}{{ if eq $j 0 }} tray__cable--exit{{ end }}"></span>
+    {{- end }}
+  </div>
+  <div class="tray tray--right" aria-hidden="true">
+    {{- $from := cond (lt .k .left) .left .k }}
+    {{- range $j, $r := after $from .rooms }}
+    <span class="tray__cable tray__cable--{{ if partialCached "is-open.html" $r $r.Path }}up{{ else }}down{{ end }}{{ if and (eq $j 0) (ge $.k $.left) }} tray__cable--exit{{ end }}"></span>
+    {{- end }}
+  </div>
+</section>
+{{- else }}
+{{- with $racks }}
+<div class="floor__racks">
+  {{- range . }}{{ partial "rack.html" (dict "rack" . "compact" true "level" 2) }}{{ end }}
+</div>
+{{- end }}
+{{- end }}

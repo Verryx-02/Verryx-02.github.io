@@ -1,0 +1,20 @@
+{{ define "band" }}
+  {{- partial "band.html" (dict "title" (printf "#%s" .Data.Term) "kicker" "Tag") }}
+{{ end }}
+
+{{ define "main" }}
+<div class="container">
+  {{- with .Content }}<div class="card prose intro">{{ . }}</div>{{ end }}
+  {{- /* Posts with this tag, newest first, each with its room, rack and unit. */}}
+  {{- with .Pages }}
+  <ol class="unit-list">
+    {{- range . }}
+      {{- $info := partialCached "rack-info.html" . .Path }}
+      {{- partial "unit.html" (dict "unit" (dict "unit" $info.number "title" .LinkTitle "page" .) "rack" $info.rack) }}
+    {{- end }}
+  </ol>
+  {{- else }}
+  <p class="empty">No posts yet.</p>
+  {{- end }}
+</div>
+{{ end }}

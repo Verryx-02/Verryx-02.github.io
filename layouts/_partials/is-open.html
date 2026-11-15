@@ -1,0 +1,11 @@
+{{- /*
+Whether a server room or a rack is open: it holds at least one published post (in a build
+with drafts, a draft counts, so `hugo server -D` previews it in place). The only place this
+rule lives (docs/adr/0003-themed-rooms-switch.md, C1); a closed room or rack is never linked,
+carries robots noindex (head.html) and is left out of layouts/sitemap.xml.
+Call it through partialCached keyed by the section's path.
+@context {page} A room or rack section.
+@returns {bool}
+@example: {{ if partialCached "is-open.html" $room $room.Path }}...{{ end }}
+*/ -}}
+{{- return gt (len .RegularPagesRecursive) 0 }}

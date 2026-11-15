@@ -1,0 +1,30 @@
+{{- /*
+Comments under a post, by giscus (GitHub Discussions of site.Params.giscus.repo).
+Renders nothing until both repoId and categoryId are set in hugo.toml [params.giscus], so an
+unconfigured site ships no JavaScript. The theme is static/css/giscus-rack.css; giscus loads
+it from its own iframe, so data-theme is the absolute URL (it cannot load from localhost:
+under `hugo server` the widget falls back to giscus's default look).
+@context page.Page A post page.
+*/ -}}
+{{- with site.Params.giscus }}
+{{- if and .repoId .categoryId }}
+<section class="card comments" aria-labelledby="comments-title">
+  <h2 class="comments__kicker" id="comments-title">Comments</h2>
+  <script src="https://giscus.app/client.js"
+    data-repo="{{ .repo }}"
+    data-repo-id="{{ .repoId }}"
+    data-category="{{ .category }}"
+    data-category-id="{{ .categoryId }}"
+    data-mapping="{{ .mapping }}"
+    data-strict="1"
+    data-reactions-enabled="{{ cond (.reactionsEnabled | default false) "1" "0" }}"
+    data-emit-metadata="0"
+    data-input-position="{{ .inputPosition }}"
+    data-theme="{{ "css/giscus-rack.css" | absURL }}"
+    data-lang="{{ .lang }}"
+    data-loading="lazy"
+    crossorigin="anonymous"
+    async></script>
+</section>
+{{- end }}
+{{- end }}

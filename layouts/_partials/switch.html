@@ -1,0 +1,40 @@
+{{- /*
+The core switch of the home page: one RJ45 port per server room, in weight order, each with
+its link LED above and a patch cable: it hangs from the plug through a flag label with the
+room name, then runs into a cable tray down to its room's floor: the rooms on the first half
+of the ports ("left" of them) to the left tray, the others to the right one (switch__port--left
+or --right; their runs never cross).
+Open room (is-open.html): lit green LED, ice-blue cable, the label links to the room page.
+Closed room: unlit LED, dark grey cable, the label is no link (a disabled link) and says
+"(closed, no posts yet)" to screen readers, so the state is not carried by colour alone.
+Ports come in eights, like a real switch: after the rooms, spare ports up to the next
+multiple of 8 (7 rooms: 1 spare), each closed with a dust cap, LED unlit, no cable, and
+hidden from screen readers (they are no room).
+The faceplate has no visible title (the nav is labelled "Server rooms").
+HTML and CSS only; the jack, the cable and its run are decoration (aria-hidden). Each room
+port sets --i (its position) for the cable geometry; an eighth room needs no template change.
+@context {dict} "rooms" (page.Pages, the rooms in weight order), "ports" (int, the port count),
+  "left" (int, how many rooms, from the first, are cabled to the left tray).
+@example: {{ partial "switch.html" (dict "rooms" .Sections.ByWeight "ports" 8 "left" 4) }}
+*/ -}}
+<nav class="switch" aria-label="Server rooms">
+  <ol class="switch__ports">
+    {{- range $k, $room := .rooms }}
+    {{- $open := partialCached "is-open.html" $room $room.Path }}
+    <li class="switch__port switch__port--{{ if $open }}up{{ else }}down{{ end }} switch__port--{{ if lt $k $.left }}left{{ else }}right{{ end }}" style="--i: {{ add $k 1 }}">
+      <span class="switch__jack" aria-hidden="true"><span class="switch__led"></span></span>
+      <span class="switch__cable" aria-hidden="true"></span>
+      {{- if $open }}
+      <a class="switch__tag" href="{{ $room.RelPermalink }}">{{ $room.LinkTitle }}</a>
+      {{- else }}
+      <span class="switch__tag" role="link" aria-disabled="true">{{ $room.LinkTitle }} <span class="visually-hidden">(closed, no posts yet)</span></span>
+      {{- end }}
+      <span class="switch__run" aria-hidden="true"></span>
+    </li>
+    {{- end }}
+    {{- $spares := sub .ports (len .rooms) }}
+    {{- if gt $spares 0 }}{{ range seq $spares }}
+    <li class="switch__port switch__port--spare" aria-hidden="true"><span class="switch__jack switch__jack--capped"><span class="switch__led"></span></span></li>
+    {{- end }}{{ end }}
+  </ol>
+</nav>

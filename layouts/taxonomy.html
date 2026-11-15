@@ -1,0 +1,21 @@
+{{ define "band" }}
+  {{- partial "band.html" (dict "title" .Title) }}
+{{ end }}
+
+{{ define "main" }}
+<div class="container">
+  {{- with .Content }}<div class="card prose intro">{{ . }}</div>{{ end }}
+  {{- with .Pages }}
+  <ul class="term-list">
+    {{- range .ByTitle }}
+    <li class="card term-card">
+      <h2 class="term-card__title"><a href="{{ .RelPermalink }}">#{{ .Data.Term }}</a></h2>
+      <p class="term-card__count">{{ len .Pages }} {{ cond (eq (len .Pages) 1) "post" "posts" }}</p>
+    </li>
+    {{- end }}
+  </ul>
+  {{- else }}
+  <p class="empty">Nothing here yet.</p>
+  {{- end }}
+</div>
+{{ end }}
